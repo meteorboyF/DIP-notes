@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSE 4833 – Digital Image Processing Notes</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 400: '#818cf8' },
+            surface: { dark: '#0f172a', card: '#1e293b', border: '#334155' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .tab-btn.active { @apply border-b-2; border-color: #6366f1; color: #6366f1; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .card { @apply rounded-xl p-5 mb-5; }
+    .dark .card { background: #1e293b; border: 1px solid #334155; }
+    .light .card, html:not(.dark) .card { background: #f8fafc; border: 1px solid #e2e8f0; }
+    .formula-box {
+      background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+      border: 1px solid #6366f1;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    html:not(.dark) .formula-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border: 1px solid #818cf8;
+    }
+    .step-box {
+      border-left: 4px solid #6366f1;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .dark .step-box { background: #0f172a; }
+    html:not(.dark) .step-box { background: #eef2ff; }
+    .badge { @apply text-xs font-bold px-2 py-1 rounded-full; }
+    .badge-blue { background: #1e40af; color: #bfdbfe; }
+    .badge-green { background: #14532d; color: #bbf7d0; }
+    .badge-purple { background: #581c87; color: #e9d5ff; }
+    .badge-orange { background: #7c2d12; color: #fed7aa; }
+    html:not(.dark) .badge-blue { background: #dbeafe; color: #1e40af; }
+    html:not(.dark) .badge-green { background: #dcfce7; color: #14532d; }
+    html:not(.dark) .badge-purple { background: #f3e8ff; color: #581c87; }
+    html:not(.dark) .badge-orange { background: #ffedd5; color: #7c2d12; }
+    .node-circle {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 12px;
+    }
+    .diagram-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .arrow { color: #6366f1; font-size: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 14px; text-align: left; border: 1px solid #334155; font-size: 14px; }
+    html:not(.dark) th, html:not(.dark) td { border-color: #e2e8f0; }
+    th { background: #1e293b; color: #94a3b8; }
+    html:not(.dark) th { background: #f1f5f9; color: #475569; }
+    tr:hover td { background: #1e3a5f22; }
+    .warn-box {
+      border: 1px solid #f59e0b;
+      background: #451a0322;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .success-box {
+      border: 1px solid #10b981;
+      background: #022c2222;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    pre { overflow-x: auto; border-radius: 8px; padding: 16px; font-size: 13px; }
+    .dark pre { background: #0f172a; }
+    html:not(.dark) pre { background: #1e293b; color: #e2e8f0; }
+    .nn-layer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .nn-node {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 11px;
+      border: 2px solid;
+    }
+    .nn-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .layer-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .calc-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: start;
+      margin: 6px 0;
+    }
+    .calc-label {
+      font-weight: 700;
+      color: #818cf8;
+      min-width: 60px;
+      font-size: 13px;
+    }
+    .calc-val {
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+    html:not(.dark) .calc-val { color: #1e293b; }
+  </style>
+</head>
+
+<body class="dark:bg-slate-900 bg-slate-50 dark:text-slate-100 text-slate-800 min-h-screen transition-colors duration-300">
+
+  <!-- ===== HEADER ===== -->
+  <header class="dark:bg-slate-800 bg-white shadow-lg sticky top-0 z-50 border-b dark:border-slate-700 border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-extrabold text-indigo-400">CSE 4833 &mdash; Digital Image Processing</h1>
+        <p class="text-xs dark:text-slate-400 text-slate-500">United International University &bull; Class Test Ready Notes</p>
+      </div>
+      <button onclick="toggleTheme()" id="themeBtn"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-yellow-300 text-slate-600 text-sm font-medium hover:opacity-80 transition">
+        <span id="themeIcon">☀️</span>
+        <span id="themeLabel">Light</span>
+      </button>
+    </div>
+    <!-- NAV TABS -->
+    <div class="max-w-7xl mx-auto px-4 flex gap-0 overflow-x-auto">
+      <button onclick="showSection('s1')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s1">
+        📷 Digital Images
+      </button>
+      <button onclick="showSection('s2')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s2">
+        📐 Sampling &amp; Quantization
+      </button>
+      <button onclick="showSection('s3')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s3">
+        🔗 Pixel Relationships
+      </button>
+      <button onclick="showSection('s4')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s4">
+        🧠 ANN in DIP
+      </button>
+      <button onclick="showSection('s5')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s5">
+        📝 Class Test &amp; Practice
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+
+    <!-- ===================== SECTION 1: DIGITAL IMAGES ===================== -->
+    <div id="s1" class="section active">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-2xl">📷</div>
+        <div>
+          <h2 class="text-2xl font-extrabold">Introduction to Digital Images</h2>
+          <p class="dark:text-slate-400 text-slate-500 text-sm">From analog signals to discrete pixel arrays</p>
+        </div>
+      </div>
+
+      <!-- 1.1 What is a digital image -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-indigo-400 mb-3">1.1 What is a Digital Image?</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-4">
+          A digital image is represented as a <strong>2D function f(x, y)</strong> where x and y are spatial coordinates
+          and f is the <strong>intensity (gray level)</strong> at that point. Both coordinates and amplitude are finite,
+          discrete quantities.
+        </p>
+        <div class="formula-box">
+          $$f(x,y) \quad \text{where} \quad x \in [0, M-1],\ y \in [0, N-1]$$
+          <p class="text-indigo-300 text-xs mt-2">M = number of rows, N = number of columns</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <h4 class="font-semibold text-emerald-400 mb-2">Grayscale Image</h4>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mb-2">Each pixel has a single intensity value (typically 0–255 for 8-bit).</p>
+            <div class="formula-box text-center">
+              $$f = \begin{bmatrix} 10 & 80 & 180 \\ 50 & 120 & 200 \\ 30 & 90 & 255 \end{bmatrix}$$
+              <p class="text-xs text-indigo-300 mt-1">3×3 grayscale image matrix</p>
+            </div>
+          </div>
+          <div>
+            <h4 class="font-semibold text-pink-400 mb-2">RGB Color Image</h4>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mb-2">Each pixel has 3 channels — Red, Green, Blue — each 0–255.</p>
+            <div class="formula-box text-center">
+              $$f(x,y) = \begin{pmatrix} R \\ G \\ B \end{pmatrix},\quad \text{e.g.} \begin{pmatrix} 255 \\ 128 \\ 0 \end{pmatrix}$$
+              <p class="text-xs text-indigo-300 mt-1">24-bit color = 8 bits × 3 channels</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 Pixel Depth -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-indigo-400 mb-3">1.2 Pixel Depth (Bit Depth)</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-4">
+          The number of bits per pixel determines how many intensity levels can be represented.
+          The formula: <strong>Intensity Levels = 2<sup>k</sup></strong> where k = bits per pixel.
+        </p>
+        <div class="formula-box">
+          $$\text{Intensity Levels} = 2^k \quad \Rightarrow \quad L = 2^k$$
+          $$\text{e.g., } k=8 \Rightarrow L = 256 \text{ levels (0 to 255)}$$
+        </div>
+        <div class="overflow-x-auto mt-4">
+          <table>
+            <thead>
+              <tr>
+                <th>Bits (k)</th>
+                <th>Gray Levels (2<sup>k</sup>)</th>
+                <th>File Size (512×512)</th>
+                <th>Usage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1-bit</td><td>2 (B&amp;W only)</td><td>32 KB</td><td>Binary masks</td></tr>
+              <tr><td>2-bit</td><td>4</td><td>65 KB</td><td>Very limited</td></tr>
+              <tr><td>4-bit</td><td>16</td><td>128 KB</td><td>Icon images</td></tr>
+              <tr><td class="text-emerald-400 font-bold">8-bit</td><td class="text-emerald-400 font-bold">256</td><td>262 KB</td><td class="text-emerald-400">Standard grayscale</td></tr>
+              <tr><td>12-bit</td><td>4096</td><td>786 KB</td><td>Medical imaging</td></tr>
+              <tr><td class="text-pink-400 font-bold">24-bit</td><td class="text-pink-400 font-bold">16.7M (per ch: 256)</td><td>786 KB</td><td class="text-pink-400">Standard RGB color</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 1.3 Image Acquisition -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-indigo-400 mb-3">1.3 Image Acquisition Pipeline</h3>
+        <div class="diagram-flow justify-center my-4 text-sm">
+          <div class="text-center">
+            <div class="w-24 h-16 dark:bg-slate-700 bg-slate-200 rounded-lg flex items-center justify-center font-semibold text-indigo-400 text-xs">Real World Scene</div>
+          </div>
+          <div class="arrow text-2xl">→</div>
+          <div class="text-center">
+            <div class="w-24 h-16 dark:bg-slate-700 bg-slate-200 rounded-lg flex items-center justify-center font-semibold text-orange-400 text-xs">Sensor (Analog Signal)</div>
+          </div>
+          <div class="arrow text-2xl">→</div>
+          <div class="text-center">
+            <div class="w-24 h-16 bg-indigo-900 rounded-lg flex items-center justify-center font-semibold text-indigo-300 text-xs border border-indigo-500">Sampling + Quantization</div>
+          </div>
+          <div class="arrow text-2xl">→</div>
+          <div class="text-center">
+            <div class="w-24 h-16 bg-emerald-900 rounded-lg flex items-center justify-center font-semibold text-emerald-300 text-xs border border-emerald-500">Digital Image f(x,y)</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="step-box">
+            <p class="font-bold text-indigo-400 text-sm">Sampling</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">Discretizes the spatial domain — determines the spatial resolution (how many pixels).</p>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-indigo-400 text-sm">Quantization</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">Discretizes the amplitude — determines intensity resolution (how many gray levels).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.4 Storage Requirements -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-indigo-400 mb-3">1.4 Storage Requirements</h3>
+        <div class="formula-box">
+          $$\text{Storage (bits)} = M \times N \times k$$
+          $$\text{Storage (bytes)} = \frac{M \times N \times k}{8}$$
+          <p class="text-xs text-indigo-300 mt-2">M = rows, N = cols, k = bits per pixel</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+          <div class="dark:bg-slate-700 bg-white rounded-lg p-3 border dark:border-slate-600 border-slate-200">
+            <p class="font-bold text-sm text-emerald-400">Grayscale 512×512 @ 8-bit</p>
+            <p class="text-2xl font-mono text-white mt-1">262,144 bytes</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">≈ 256 KB</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-white rounded-lg p-3 border dark:border-slate-600 border-slate-200">
+            <p class="font-bold text-sm text-pink-400">RGB 512×512 @ 24-bit</p>
+            <p class="text-2xl font-mono text-white mt-1">786,432 bytes</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">≈ 768 KB</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-white rounded-lg p-3 border dark:border-slate-600 border-slate-200">
+            <p class="font-bold text-sm text-orange-400">Medical 16×16 @ 3-bit</p>
+            <p class="text-2xl font-mono text-white mt-1">96 bytes</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Only 8 gray levels!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SECTION 2: SAMPLING & QUANTIZATION ===================== -->
+    <div id="s2" class="section">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-orange-600 flex items-center justify-center text-2xl">📐</div>
+        <div>
+          <h2 class="text-2xl font-extrabold">Sampling, Quantization &amp; Resolution</h2>
+          <p class="dark:text-slate-400 text-slate-500 text-sm">The mathematics of continuous-to-discrete conversion</p>
+        </div>
+      </div>
+
+      <!-- 2.1 Spatial Resolution -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-orange-400 mb-3">2.1 Spatial Resolution</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-3">
+          Spatial resolution defines <strong>how many pixels per unit area</strong>. It is measured in
+          <strong>DPI (Dots Per Inch)</strong> or PPI (Pixels Per Inch). Higher DPI = more pixels = more detail captured.
+        </p>
+        <div class="formula-box">
+          $$\text{Total Pixels} = M \times N$$
+          $$\text{Spatial Resolution (DPI)} = \frac{\text{pixels}}{\text{inch}}$$
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <h4 class="font-semibold text-amber-400 mb-2">Effect of Reducing Spatial Resolution</h4>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 space-y-2">
+              <li>⬇️ Fewer pixels → <strong>Jagged lines</strong> (staircase effect)</li>
+              <li>⬇️ Fine details (tiny tumors) become <strong>invisible</strong></li>
+              <li>⬇️ Objects lose shape fidelity</li>
+              <li>✅ Smaller file size</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-amber-400 mb-2">Jagged Lines (Aliasing)</h4>
+            <p class="text-sm dark:text-slate-300 text-slate-600">When spatial resolution is too low, smooth diagonal edges appear as a "staircase" pattern because a coarser grid cannot represent fine angular detail.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 Intensity Resolution -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-orange-400 mb-3">2.2 Intensity Resolution</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-3">
+          Intensity resolution defines <strong>how many distinct gray levels</strong> can be represented per pixel.
+          It is determined by the number of bits per pixel (bit depth).
+        </p>
+        <div class="formula-box">
+          $$L = 2^k \quad \Rightarrow \quad \text{gray levels from } 0 \text{ to } L-1$$
+          $$\text{Intensity range: } [0,\ 2^k - 1]$$
+        </div>
+
+        <div class="warn-box mt-4">
+          <h4 class="font-bold text-amber-400 mb-2">⚠️ False Contouring</h4>
+          <p class="text-sm dark:text-slate-300 text-slate-600">
+            When intensity resolution is <strong>too low</strong> (e.g., 2-bit = 4 levels), smooth gradients
+            appear as abrupt bands of constant color — called <strong>false contours</strong>.
+            This happens because nearby tones that should be slightly different are mapped to the same discrete level.
+          </p>
+          <p class="text-sm dark:text-slate-300 text-slate-600 mt-2">
+            Example: An X-ray with only 3 bits (8 levels) cannot distinguish subtle density changes in tissue,
+            leading to incorrect diagnosis due to <strong>loss of tissue contrast</strong>.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto mt-4">
+          <table>
+            <thead>
+              <tr><th>Bits/pixel</th><th>Gray Levels</th><th>Tissue Contrast</th><th>Problem</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-red-400 font-bold">3-bit</td>
+                <td>8</td>
+                <td class="text-red-400">Very Poor</td>
+                <td>False contouring, missed soft tissue differences</td>
+              </tr>
+              <tr>
+                <td>8-bit</td>
+                <td>256</td>
+                <td class="text-yellow-400">Good</td>
+                <td>Acceptable for most uses</td>
+              </tr>
+              <tr>
+                <td class="text-emerald-400 font-bold">12-bit</td>
+                <td>4096</td>
+                <td class="text-emerald-400">Excellent</td>
+                <td>Ideal for medical imaging (MRI, CT)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2.3 Tradeoff -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-orange-400 mb-3">2.3 Spatial vs. Intensity Resolution Tradeoff</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="badge badge-blue">Prototype 1</span>
+              <span class="font-bold">High Spatial, Low Intensity</span>
+            </div>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 space-y-1">
+              <li>✅ Captures fine spatial detail (edges, small structures)</li>
+              <li>✅ Less likely to miss tiny tumors due to high spatial res</li>
+              <li>❌ Only 3-bit = 8 gray levels</li>
+              <li>❌ <strong>False contouring</strong> — misses subtle intensity differences</li>
+              <li>❌ Cannot distinguish similar tissue types → wrong diagnosis</li>
+            </ul>
+          </div>
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="badge badge-purple">Prototype 2</span>
+              <span class="font-bold">Low Spatial, High Intensity</span>
+            </div>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 space-y-1">
+              <li>❌ Lower spatial resolution → coarser image</li>
+              <li>❌ <strong>More likely to miss tiny tumors</strong> (spatial detail lost)</li>
+              <li>✅ 12-bit = 4096 gray levels</li>
+              <li>✅ Excellent tissue contrast discrimination</li>
+              <li>✅ Less false contouring</li>
+            </ul>
+          </div>
+        </div>
+        <div class="success-box mt-4">
+          <h4 class="font-bold text-emerald-400 mb-1">💡 Which to Improve?</h4>
+          <p class="text-sm dark:text-slate-300 text-slate-600">
+            For detecting <strong>tiny tumors in MRI</strong>, improving <strong>intensity resolution</strong>
+            (from 3-bit to higher) is the better investment. Tumors often have similar physical size but differ
+            subtly in <em>tissue density</em>. The ability to distinguish these subtle intensity differences (contrast)
+            is what makes MRI diagnostically useful. Spatial resolution matters for location, but contrast
+            resolution determines if you can <em>see</em> the tumor at all.
+          </p>
+        </div>
+      </div>
+
+      <!-- 2.4 Math Example -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-orange-400 mb-3">2.4 Solved Example — Sampling Parameters</h3>
+        <div class="warn-box mb-4">
+          <p class="font-bold text-amber-300">Problem:</p>
+          <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">An image has M=512, N=512 with 8 bits per pixel. Calculate: (a) total gray levels, (b) storage in bytes, (c) new storage if reduced to 4-bit.</p>
+        </div>
+        <div class="step-box">
+          <p class="text-indigo-400 font-bold text-sm">Step 1 — Gray Levels</p>
+          <div class="formula-box mt-2">$$L = 2^k = 2^8 = 256 \text{ gray levels}$$</div>
+        </div>
+        <div class="step-box">
+          <p class="text-indigo-400 font-bold text-sm">Step 2 — Storage at 8-bit</p>
+          <div class="formula-box mt-2">$$\text{Storage} = \frac{512 \times 512 \times 8}{8} = 512 \times 512 = 262{,}144 \text{ bytes} \approx 256 \text{ KB}$$</div>
+        </div>
+        <div class="step-box">
+          <p class="text-indigo-400 font-bold text-sm">Step 3 — Storage at 4-bit (halved bit depth)</p>
+          <div class="formula-box mt-2">$$\text{Storage} = \frac{512 \times 512 \times 4}{8} = 131{,}072 \text{ bytes} \approx 128 \text{ KB}$$</div>
+          <p class="text-sm text-emerald-400 mt-2">Gray levels drop from 256 → 16. File size halves but false contouring may appear!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SECTION 3: PIXEL RELATIONSHIPS ===================== -->
+    <div id="s3" class="section">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center text-2xl">🔗</div>
+        <div>
+          <h2 class="text-2xl font-extrabold">Pixel Relationships &amp; Adjacency</h2>
+          <p class="dark:text-slate-400 text-slate-500 text-sm">N4, ND, N8 neighborhoods and 4/8/m-adjacency rules</p>
+        </div>
+      </div>
+
+      <!-- 3.1 Neighbors -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-teal-400 mb-3">3.1 Pixel Neighborhoods</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-4">
+          For a pixel <strong>p</strong> at location (x, y), we define three types of neighborhoods:
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- N4 -->
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-xl p-4">
+            <h4 class="font-bold text-teal-400 text-center mb-3">N4(p) — 4-Neighbors</h4>
+            <div class="grid grid-cols-3 gap-1 max-w-[160px] mx-auto text-center text-sm font-mono">
+              <div></div><div class="dark:bg-teal-800 bg-teal-100 text-teal-400 rounded p-2">(x-1,y)</div><div></div>
+              <div class="dark:bg-teal-800 bg-teal-100 text-teal-400 rounded p-2">(x,y-1)</div>
+              <div class="bg-indigo-600 text-white rounded p-2">p</div>
+              <div class="dark:bg-teal-800 bg-teal-100 text-teal-400 rounded p-2">(x,y+1)</div>
+              <div></div><div class="dark:bg-teal-800 bg-teal-100 text-teal-400 rounded p-2">(x+1,y)</div><div></div>
+            </div>
+            <p class="text-xs dark:text-slate-400 text-slate-500 text-center mt-3">Horizontal + Vertical only</p>
+          </div>
+          <!-- ND -->
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-xl p-4">
+            <h4 class="font-bold text-orange-400 text-center mb-3">N<sub>D</sub>(p) — Diagonal Neighbors</h4>
+            <div class="grid grid-cols-3 gap-1 max-w-[160px] mx-auto text-center text-sm font-mono">
+              <div class="dark:bg-orange-900 bg-orange-100 text-orange-400 rounded p-2">(-1,-1)</div>
+              <div></div>
+              <div class="dark:bg-orange-900 bg-orange-100 text-orange-400 rounded p-2">(-1,+1)</div>
+              <div></div>
+              <div class="bg-indigo-600 text-white rounded p-2">p</div>
+              <div></div>
+              <div class="dark:bg-orange-900 bg-orange-100 text-orange-400 rounded p-2">(+1,-1)</div>
+              <div></div>
+              <div class="dark:bg-orange-900 bg-orange-100 text-orange-400 rounded p-2">(+1,+1)</div>
+            </div>
+            <p class="text-xs dark:text-slate-400 text-slate-500 text-center mt-3">Diagonal only (4 corners)</p>
+          </div>
+          <!-- N8 -->
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-xl p-4">
+            <h4 class="font-bold text-purple-400 text-center mb-3">N8(p) — 8-Neighbors</h4>
+            <div class="grid grid-cols-3 gap-1 max-w-[160px] mx-auto text-center text-sm font-mono">
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(-1,-1)</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(-1, 0)</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(-1,+1)</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(0,-1)</div>
+              <div class="bg-indigo-600 text-white rounded p-1 text-xs">p</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(0,+1)</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(+1,-1)</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(+1, 0)</div>
+              <div class="dark:bg-purple-900 bg-purple-100 text-purple-400 rounded p-1 text-xs">(+1,+1)</div>
+            </div>
+            <p class="text-xs dark:text-slate-400 text-slate-500 text-center mt-3">N4 + ND = All 8 neighbors</p>
+          </div>
+        </div>
+        <div class="formula-box mt-4">
+          $$N_8(p) = N_4(p) \cup N_D(p)$$
+        </div>
+      </div>
+
+      <!-- 3.2 Adjacency Types -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-teal-400 mb-3">3.2 Types of Adjacency</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-4">
+          Let <strong>V</strong> be the set of intensity values used to define adjacency. Two pixels are adjacent
+          if they are neighbors <em>and</em> both have values in V.
+        </p>
+
+        <div class="space-y-4">
+          <!-- 4-adjacency -->
+          <div class="step-box border-teal-500" style="border-color:#14b8a6">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-green">4-Adjacency</span>
+            </div>
+            <p class="text-sm dark:text-slate-300 text-slate-600">
+              Pixels p and q are <strong>4-adjacent</strong> if q ∈ N4(p) AND both have values from V.
+            </p>
+            <div class="formula-box mt-2">
+              $$p \sim_4 q \iff q \in N_4(p) \text{ and } f(q) \in V$$
+            </div>
+          </div>
+
+          <!-- 8-adjacency -->
+          <div class="step-box border-purple-500" style="border-color:#a855f7">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-purple">8-Adjacency</span>
+            </div>
+            <p class="text-sm dark:text-slate-300 text-slate-600">
+              Pixels p and q are <strong>8-adjacent</strong> if q ∈ N8(p) AND both have values from V.
+              (More permissive — allows diagonal connections.)
+            </p>
+            <div class="formula-box mt-2">
+              $$p \sim_8 q \iff q \in N_8(p) \text{ and } f(q) \in V$$
+            </div>
+          </div>
+
+          <!-- m-adjacency -->
+          <div class="step-box border-orange-500" style="border-color:#f97316">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-orange">m-Adjacency (Mixed)</span>
+              <span class="text-xs dark:text-slate-400 text-slate-500">Most important!</span>
+            </div>
+            <p class="text-sm dark:text-slate-300 text-slate-600">
+              Pixels p and q are <strong>m-adjacent</strong> if either:
+            </p>
+            <ol class="list-decimal list-inside text-sm dark:text-slate-300 text-slate-600 mt-2 space-y-1 ml-2">
+              <li>q ∈ N4(p) — they are 4-adjacent, <strong>OR</strong></li>
+              <li>q ∈ N<sub>D</sub>(p) AND N4(p) ∩ N4(q) has <strong>no pixels</strong> with values in V</li>
+            </ol>
+            <div class="formula-box mt-3">
+              $$p \sim_m q \iff \begin{cases} q \in N_4(p), & \text{OR} \\ q \in N_D(p) \text{ and } N_4(p) \cap N_4(q) \cap V = \emptyset \end{cases}$$
+            </div>
+            <div class="warn-box mt-3">
+              <p class="text-xs font-bold text-amber-300">Why m-adjacency?</p>
+              <p class="text-xs dark:text-slate-300 text-slate-600 mt-1">
+                8-adjacency can create <strong>ambiguous paths</strong> — multiple paths between two pixels.
+                m-adjacency eliminates this ambiguity by preferring 4-neighbors when possible.
+                It only uses diagonal connections when the 4-neighbor path does NOT already pass through a V-valued pixel.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.3 m-adjacency worked example -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-teal-400 mb-3">3.3 m-Adjacency Worked Example</h3>
+        <div class="dark:bg-slate-800 bg-slate-100 rounded-lg p-4 mb-4">
+          <p class="text-sm font-mono mb-3 dark:text-slate-300 text-slate-600">V = {1}, Grid:</p>
+          <div class="grid grid-cols-3 gap-1 max-w-[160px] font-mono text-center text-sm">
+            <div class="rounded p-2 dark:bg-slate-600 bg-white">0</div>
+            <div class="rounded p-2 bg-indigo-700 text-white font-bold">1=b</div>
+            <div class="rounded p-2 bg-indigo-700 text-white font-bold">1=c</div>
+            <div class="rounded p-2 dark:bg-slate-600 bg-white">0</div>
+            <div class="rounded p-2 bg-indigo-700 text-white font-bold">1=e</div>
+            <div class="rounded p-2 dark:bg-slate-600 bg-white">0</div>
+            <div class="rounded p-2 dark:bg-slate-600 bg-white">0</div>
+            <div class="rounded p-2 dark:bg-slate-600 bg-white">0</div>
+            <div class="rounded p-2 bg-indigo-700 text-white font-bold">1=i</div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="step-box">
+            <p class="font-bold text-teal-400 text-sm">Case (i): Are b and c m-adjacent?</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">b=(0,1), c=(0,2). Is c in N4(b)? <strong>Yes</strong> — they are horizontal neighbors. ∴ Condition 1 satisfied.</p>
+            <p class="text-emerald-400 font-bold text-sm mt-1">✅ b and c ARE m-adjacent</p>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-teal-400 text-sm">Case (ii): Are b and e m-adjacent?</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">b=(0,1), e=(1,1). Is e in N4(b)? <strong>Yes</strong> — vertical neighbor. ∴ Condition 1 satisfied.</p>
+            <p class="text-emerald-400 font-bold text-sm mt-1">✅ b and e ARE m-adjacent</p>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-teal-400 text-sm">Case (iii): Are e and i m-adjacent?</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">e=(1,1), i=(2,2). Is i in N4(e)? No. Is i in ND(e)? <strong>Yes</strong> (diagonal). Check N4(e)∩N4(i)={f=(1,2), h=(2,1)}. Do f or h have values in V={1}? f=0, h=0. <strong>No</strong>.</p>
+            <p class="text-emerald-400 font-bold text-sm mt-1">✅ e and i ARE m-adjacent (via diagonal, no V-valued pixel in shared N4)</p>
+          </div>
+          <div class="step-box border-red-500" style="border-color:#ef4444">
+            <p class="font-bold text-red-400 text-sm">Case (iv): Are e and c m-adjacent?</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">e=(1,1), c=(0,2). Is c in N4(e)? No. Is c in ND(e)? <strong>Yes</strong> (diagonal). Check N4(e)∩N4(c)={b=(0,1)}. Does b have value in V={1}? <strong>Yes! b=1</strong>.</p>
+            <p class="text-red-400 font-bold text-sm mt-1">❌ e and c are NOT m-adjacent (the diagonal path is blocked because a V-pixel exists in shared neighborhood)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.4 Applications -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-teal-400 mb-3">3.4 Applications of Adjacency</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-lg p-3">
+            <p class="font-bold text-teal-300 text-sm mb-1">🏥 Object Segmentation</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Determines which pixels belong to the same object. In medical imaging, decides if scattered cells form one tumor or multiple.</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-lg p-3">
+            <p class="font-bold text-teal-300 text-sm mb-1">📏 Edge Detection</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Identifies boundaries between objects by checking pixel connectivity. Example: finding lips vs skin boundary.</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-lg p-3">
+            <p class="font-bold text-teal-300 text-sm mb-1">🔇 Noise Removal</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Isolates noisy pixels (salt-and-pepper noise) by checking if they're disconnected from meaningful regions.</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-lg p-3">
+            <p class="font-bold text-teal-300 text-sm mb-1">🤖 Pathfinding</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Robots use adjacency to navigate maps — 4-connected vs 8-connected paths have different shortest-path results.</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-lg p-3">
+            <p class="font-bold text-teal-300 text-sm mb-1">🔷 Morphological Ops</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Dilation and erosion operations depend on adjacency to define how shapes grow or shrink.</p>
+          </div>
+          <div class="dark:bg-slate-700 bg-slate-100 rounded-lg p-3">
+            <p class="font-bold text-teal-300 text-sm mb-1">🌊 Connected Components</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500">Flood-fill algorithms, blob detection, and region labeling all rely on pixel adjacency definitions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SECTION 4: ANN IN DIP ===================== -->
+    <div id="s4" class="section">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center text-2xl">🧠</div>
+        <div>
+          <h2 class="text-2xl font-extrabold">Artificial Neural Networks in DIP</h2>
+          <p class="dark:text-slate-400 text-slate-500 text-sm">Architecture, activation functions, forward propagation &amp; loss</p>
+        </div>
+      </div>
+
+      <!-- 4.1 ANN Architecture -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-purple-400 mb-3">4.1 ANN Architecture</h3>
+        <p class="dark:text-slate-300 text-slate-600 mb-4">
+          An Artificial Neural Network consists of interconnected layers of neurons. Each connection has a <strong>weight</strong> and each neuron has a <strong>bias</strong> and an <strong>activation function</strong>.
+        </p>
+
+        <!-- Visual Network -->
+        <div class="dark:bg-slate-800 bg-slate-100 rounded-xl p-4 overflow-x-auto">
+          <div class="nn-container">
+            <div class="nn-layer">
+              <div class="layer-label">Input Layer</div>
+              <div class="nn-node" style="background:#1e293b;border-color:#22d3ee;color:#22d3ee;">x₁</div>
+              <div class="nn-node" style="background:#1e293b;border-color:#22d3ee;color:#22d3ee;">x₂</div>
+              <div class="nn-node" style="background:#1e293b;border-color:#22d3ee;color:#22d3ee;">x₃</div>
+            </div>
+            <div class="text-indigo-400 text-3xl">→</div>
+            <div class="nn-layer">
+              <div class="layer-label">Hidden 1 (Sigmoid)</div>
+              <div class="nn-node" style="background:#312e81;border-color:#818cf8;color:#818cf8;">h₁</div>
+              <div class="nn-node" style="background:#312e81;border-color:#818cf8;color:#818cf8;">h₂</div>
+              <div class="nn-node" style="background:#312e81;border-color:#818cf8;color:#818cf8;">h₃</div>
+              <div class="nn-node" style="background:#312e81;border-color:#818cf8;color:#818cf8;">h₄</div>
+            </div>
+            <div class="text-indigo-400 text-3xl">→</div>
+            <div class="nn-layer">
+              <div class="layer-label">Hidden 2 (ReLU)</div>
+              <div class="nn-node" style="background:#14532d;border-color:#4ade80;color:#4ade80;">j₁</div>
+              <div class="nn-node" style="background:#14532d;border-color:#4ade80;color:#4ade80;">j₂</div>
+              <div class="nn-node" style="background:#14532d;border-color:#4ade80;color:#4ade80;">j₃</div>
+            </div>
+            <div class="text-indigo-400 text-3xl">→</div>
+            <div class="nn-layer">
+              <div class="layer-label">Output (Softmax)</div>
+              <div class="nn-node" style="background:#7c2d12;border-color:#fb923c;color:#fb923c;">o₁</div>
+              <div class="nn-node" style="background:#7c2d12;border-color:#fb923c;color:#fb923c;">o₂</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-box mt-4">
+          $$z_j = \sum_{i} w_{ij} \cdot a_i + b_j \quad \Rightarrow \quad a_j = g(z_j)$$
+          <p class="text-xs text-indigo-300 mt-2">z = weighted sum (pre-activation), a = activated output, g = activation function, w = weight, b = bias</p>
+        </div>
+      </div>
+
+      <!-- 4.2 Activation Functions -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-purple-400 mb-3">4.2 Activation Functions</h3>
+        <div class="space-y-4">
+
+          <!-- Sigmoid -->
+          <div class="step-box" style="border-color:#6366f1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-blue">Sigmoid / Logistic</span>
+              <span class="text-xs dark:text-slate-400 text-slate-500">Used in Hidden Layer 1</span>
+            </div>
+            <div class="formula-box">
+              $$\sigma(z) = \frac{1}{1 + e^{-z}} \quad \in (0, 1)$$
+            </div>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 mt-2 space-y-1">
+              <li>✅ Output always between 0 and 1 — good for probability</li>
+              <li>✅ Smooth, differentiable everywhere</li>
+              <li>❌ Vanishing gradient for very large/small inputs (saturates)</li>
+              <li>📌 Used in output for binary classification</li>
+            </ul>
+          </div>
+
+          <!-- ReLU -->
+          <div class="step-box" style="border-color:#4ade80">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-green">ReLU (Rectified Linear Unit)</span>
+              <span class="text-xs dark:text-slate-400 text-slate-500">Used in Hidden Layer 2</span>
+            </div>
+            <div class="formula-box">
+              $$\text{ReLU}(z) = \max(0, z) = \begin{cases} z & \text{if } z \geq 0 \\ 0 & \text{if } z < 0 \end{cases}$$
+            </div>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 mt-2 space-y-1">
+              <li>✅ No vanishing gradient for positive values</li>
+              <li>✅ Computationally cheap</li>
+              <li>✅ Most widely used in deep/CNN models</li>
+              <li>❌ "Dying ReLU" — neurons can get stuck at 0</li>
+            </ul>
+          </div>
+
+          <!-- Softmax -->
+          <div class="step-box" style="border-color:#fb923c">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-orange">Softmax</span>
+              <span class="text-xs dark:text-slate-400 text-slate-500">Suitable for multi-class output</span>
+            </div>
+            <div class="formula-box">
+              $$\text{Softmax}(z_k) = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}$$
+            </div>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 mt-2 space-y-1">
+              <li>✅ Outputs sum to 1 — interpretable as class probabilities</li>
+              <li>✅ Ideal for multi-class classification (K &gt; 2 classes)</li>
+              <li>✅ Unlike other activation functions, Softmax operates on ALL output neurons simultaneously</li>
+              <li>📌 Q3 Answer: Softmax differs from Sigmoid/ReLU/Tanh because it considers ALL outputs together to produce a probability distribution. Other functions operate independently on each neuron.</li>
+            </ul>
+          </div>
+
+          <!-- Tanh -->
+          <div class="step-box" style="border-color:#a855f7">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge badge-purple">Tanh</span>
+            </div>
+            <div class="formula-box">
+              $$\tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}} \quad \in (-1, 1)$$
+            </div>
+            <ul class="text-sm dark:text-slate-300 text-slate-600 mt-2 space-y-1">
+              <li>✅ Zero-centered (unlike Sigmoid)</li>
+              <li>✅ Range (−1, 1) — useful when negative outputs matter</li>
+              <li>❌ Still suffers from vanishing gradient at extremes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.3 Forward Propagation -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-purple-400 mb-3">4.3 Forward Propagation Algorithm</h3>
+        <div class="space-y-3">
+          <div class="step-box">
+            <p class="font-bold text-purple-300 text-sm">Step 1 — Initialize</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600">Set input activations: a = [x₁, x₂, ..., xₙ]</p>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-purple-300 text-sm">Step 2 — For each layer l</p>
+            <div class="formula-box mt-1">$$z^{[l]} = W^{[l]} \cdot a^{[l-1]} + b^{[l]}$$</div>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-purple-300 text-sm">Step 3 — Apply activation</p>
+            <div class="formula-box mt-1">$$a^{[l]} = g^{[l]}(z^{[l]})$$</div>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-purple-300 text-sm">Step 4 — Output is final layer's activation</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600">ŷ = a<sup>[L]</sup> (predicted output)</p>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-purple-300 text-sm">Step 5 — Compute Loss</p>
+            <div class="formula-box mt-1">
+              $$\mathcal{L} = -\sum_i \left[ y_i \log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i) \right]$$
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.4 Loss Functions -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-purple-400 mb-3">4.4 Loss Functions</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-semibold text-pink-400 mb-2">Binary Cross-Entropy (Log Loss)</h4>
+            <div class="formula-box">
+              $$\mathcal{L}_i = -y_i \log(o_i) - (1-y_i)\log(1-o_i)$$
+            </div>
+            <p class="text-xs dark:text-slate-400 text-slate-500 mt-2">Per output neuron. y = actual, o = predicted.</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-pink-400 mb-2">Categorical Cross-Entropy</h4>
+            <div class="formula-box">
+              $$\mathcal{L} = -\sum_{k} y_k \log(\hat{y}_k)$$
+            </div>
+            <p class="text-xs dark:text-slate-400 text-slate-500 mt-2">Used with Softmax for multi-class output.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.5 Keras API Quick Reference -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-purple-400 mb-3">4.5 Keras Sequential API — Quick Reference</h3>
+        <pre class="text-sm"><code class="text-emerald-300"># Import
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# Build model
+model = Sequential([
+    Dense(units=4, activation='sigmoid', input_dim=3),  # Hidden L1
+    Dense(units=3, activation='relu'),                    # Hidden L2
+    Dense(units=2, activation='softmax')                  # Output
+])
+
+# Compile
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+# Train
+model.fit(X_train, y_train, batch_size=10, epochs=100)
+
+# Predict
+y_pred = model.predict(X_test)</code></pre>
+      </div>
+    </div>
+
+    <!-- ===================== SECTION 5: CLASS TEST & PRACTICE ===================== -->
+    <div id="s5" class="section">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-rose-600 flex items-center justify-center text-2xl">📝</div>
+        <div>
+          <h2 class="text-2xl font-extrabold">Class Test Analysis &amp; Practice Set</h2>
+          <p class="dark:text-slate-400 text-slate-500 text-sm">CT1 solutions + 5 practice problems modeled after exam style</p>
+        </div>
+      </div>
+
+      <!-- ===== CT SOLUTION ===== -->
+      <div class="card border-2 border-rose-700">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="badge bg-rose-700 text-white">CT1 — OFFICIAL SOLUTIONS</span>
+          <span class="text-sm dark:text-slate-400 text-slate-500">CSE 4833 · 40 min · 20 marks</span>
+        </div>
+
+        <!-- Q1 -->
+        <div class="dark:bg-slate-800 bg-slate-100 rounded-xl p-4 mb-5">
+          <h3 class="font-bold text-rose-400 mb-3">Q1 [6 marks] — Medical Imaging: Spatial vs Intensity Resolution</h3>
+          <div class="warn-box mb-3">
+            <p class="text-xs dark:text-slate-300 text-slate-600"><strong>Prototype 1:</strong> Very high spatial res, only 3-bit per pixel (8 gray levels)<br>
+            <strong>Prototype 2:</strong> Lower spatial res, 12-bit per pixel (4096 gray levels)</p>
+          </div>
+
+          <div class="step-box border-rose-500" style="border-color:#f43f5e">
+            <p class="font-bold text-rose-400 text-sm">(i) Which is more likely to miss detecting tiny tumors? [2]</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-2">
+              <strong>Answer: Prototype 2</strong> (lower spatial resolution). Tiny tumors occupy very few pixels.
+              With coarser spatial resolution, the tumor may span less than 1 pixel and become invisible —
+              it literally gets averaged away. Spatial resolution determines the <em>minimum detectable feature size</em>.
+            </p>
+            <p class="text-xs text-emerald-400 mt-2">💡 Key insight: High spatial res = more pixels per area = finer detail captured = tiny structures visible.</p>
+          </div>
+
+          <div class="step-box border-rose-500" style="border-color:#f43f5e; margin-top:12px">
+            <p class="font-bold text-rose-400 text-sm">(ii) Which causes incorrect diagnosis due to loss of tissue contrast? [2]</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-2">
+              <strong>Answer: Prototype 1</strong> (3-bit = only 8 gray levels). MRI distinguishes tissue types
+              by subtle differences in signal intensity. With only 8 levels, many different tissues
+              get mapped to the same gray value — <strong>false contouring</strong> — making it impossible
+              to distinguish healthy from cancerous tissue. This directly causes misdiagnosis.
+            </p>
+            <div class="formula-box mt-2">
+              $$\text{3-bit} \Rightarrow L=2^3=8 \text{ levels}\quad \text{vs} \quad \text{12-bit} \Rightarrow L=2^{12}=4096 \text{ levels}$$
+            </div>
+          </div>
+
+          <div class="step-box border-rose-500" style="border-color:#f43f5e; margin-top:12px">
+            <p class="font-bold text-rose-400 text-sm">(iii) Which parameter would you improve? [2]</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-2">
+              <strong>Answer: Improve Intensity Resolution</strong> (increase bits per pixel).
+              <br><strong>Justification:</strong> For tumor detection in MRI, the core challenge is
+              distinguishing tumor tissue from surrounding healthy tissue — they often have nearly identical
+              physical sizes but differ in <em>signal density</em>. 3-bit depth (8 levels) is
+              catastrophically inadequate for medical use. Going to even 8-bit (256 levels) dramatically
+              improves diagnostic accuracy. Spatial resolution can compensate somewhat via zoom/magnification
+              post-processing, but you cannot recover lost intensity information once quantized to 8 levels.
+            </p>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="dark:bg-slate-800 bg-slate-100 rounded-xl p-4 mb-5">
+          <h3 class="font-bold text-rose-400 mb-3">Q2 [2 marks] — 16×16 Image → ANN Design</h3>
+          <div class="warn-box mb-3">
+            <p class="text-xs dark:text-slate-300 text-slate-600">Dataset: 16×16 pixel images where each pixel is a feature. Goal: classify into 5 categories.</p>
+          </div>
+          <div class="step-box">
+            <p class="font-bold text-indigo-400 text-sm">Input neurons:</p>
+            <div class="formula-box mt-1">$$\text{Input neurons} = 16 \times 16 = 256$$</div>
+            <p class="text-sm dark:text-slate-300 text-slate-600">Each pixel is one feature → one input neuron per pixel.</p>
+          </div>
+          <div class="step-box mt-2">
+            <p class="font-bold text-indigo-400 text-sm">Output neurons:</p>
+            <div class="formula-box mt-1">$$\text{Output neurons} = 5 \quad (\text{one per class})$$</div>
+          </div>
+          <div class="step-box mt-2">
+            <p class="font-bold text-indigo-400 text-sm">Activation function for output:</p>
+            <p class="text-sm dark:text-slate-300 text-slate-600 mt-1"><strong>Softmax</strong> — because this is a multi-class classification problem (5 classes). Softmax converts the raw output scores into a probability distribution over 5 classes that sums to 1. We pick the class with highest probability.</p>
+            <div class="formula-box mt-2">$$\text{Softmax}(z_k) = \frac{e^{z_k}}{\sum_{j=1}^{5} e^{z_j}}$$</div>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="dark:bg-slate-800 bg-slate-100 rounded-xl p-4 mb-5">
+          <h3 class="font-bold text-rose-400 mb-3">Q3 [2 marks] — How does Softmax differ from other activation functions?</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr><th>Property</th><th>Sigmoid/ReLU/Tanh</th><th>Softmax</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Operates on</td><td>Single neuron independently</td><td class="text-emerald-400"><strong>All output neurons together</strong></td></tr>
+                <tr><td>Output range</td><td>(0,1) or (0,∞) or (-1,1)</td><td class="text-emerald-400"><strong>All outputs sum to 1</strong></td></tr>
+                <tr><td>Interpretation</td><td>Individual activation level</td><td class="text-emerald-400"><strong>Probability distribution</strong></td></tr>
+                <tr><td>Use case</td><td>Hidden layers, binary output</td><td class="text-emerald-400"><strong>Multi-class output layer</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm dark:text-slate-300 text-slate-600 mt-3"><strong>Key sentence:</strong> Unlike Sigmoid/ReLU which treat each neuron independently, Softmax normalizes all outputs relative to each other — making it the only activation that models a probability distribution across multiple classes.</p>
+        </div>
+
+        <!-- Q4 — Full Forward Propagation -->
+        <div class="dark:bg-slate-800 bg-slate-100 rounded-xl p-4">
+          <h3 class="font-bold text-rose-400 mb-1">Q4 [10 marks] — ANN Forward Propagation + Loss</h3>
+          <p class="text-xs dark:text-slate-400 text-slate-500 mb-4">Architecture: 3→4(Sigmoid)→3(ReLU)→2(Softmax). Inputs: [0.45, 0.25, 0.15]. Actual: [1.0, 0.0]</p>
+
+          <!-- Network weight table -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+            <div>
+              <p class="font-bold text-purple-300 text-xs mb-2">Layer 1 Weights (Input→H1)</p>
+              <table class="text-xs">
+                <tr><th>Connection</th><th>Weight</th></tr>
+                <tr><td>i1→h1</td><td>0.25</td></tr>
+                <tr><td>i2→h1</td><td>0.35</td></tr>
+                <tr><td>i3→h1</td><td>0.15</td></tr>
+                <tr><td>i1→h2</td><td>0.20</td></tr>
+                <tr><td>i2→h2</td><td>0.30</td></tr>
+                <tr><td>i3→h2</td><td>0.10</td></tr>
+                <tr><td>i1→h3</td><td>0.40</td></tr>
+                <tr><td>i2→h3</td><td>0.10</td></tr>
+                <tr><td>i3→h3</td><td>0.45</td></tr>
+                <tr><td>i1→h4</td><td>0.30</td></tr>
+                <tr><td>i2→h4</td><td>0.50</td></tr>
+                <tr><td>i3→h4</td><td>0.20</td></tr>
+              </table>
+            </div>
+            <div>
+              <p class="font-bold text-emerald-300 text-xs mb-2">Layer 2 Weights (H1→H2)</p>
+              <table class="text-xs">
+                <tr><th>Connection</th><th>Weight</th></tr>
+                <tr><td>h1→j1</td><td>0.15</td></tr>
+                <tr><td>h2→j1</td><td>0.30</td></tr>
+                <tr><td>h3→j1</td><td>0.20</td></tr>
+                <tr><td>h4→j1</td><td>0.25</td></tr>
+                <tr><td>h1→j2</td><td>0.25</td></tr>
+                <tr><td>h2→j2</td><td>0.40</td></tr>
+                <tr><td>h3→j2</td><td>0.15</td></tr>
+                <tr><td>h4→j2</td><td>0.60</td></tr>
+                <tr><td>h1→j3</td><td>0.45</td></tr>
+                <tr><td>h2→j3</td><td>0.35</td></tr>
+                <tr><td>h3→j3</td><td>0.55</td></tr>
+                <tr><td>h4→j3</td><td>0.25</td></tr>
+              </table>
+            </div>
+            <div>
+              <p class="font-bold text-orange-300 text-xs mb-2">Layer 3 Weights (H2→Output)</p>
+              <table class="text-xs">
+                <tr><th>Connection</th><th>Weight</th></tr>
+                <tr><td>j1→o1</td><td>0.40</td></tr>
+                <tr><td>j2→o1</td><td>0.30</td></tr>
+                <tr><td>j3→o1</td><td>0.10</td></tr>
+                <tr><td>j1→o2</td><td>0.50</td></tr>
+                <tr><td>j2→o2</td><td>0.25</td></tr>
+                <tr><td>j3→o2</td><td>0.30</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Step-by-step calculation -->
+          <div class="step-box" style="border-color:#818cf8">
+            <p class="font-bold text-indigo-300 text-sm mb-3">📊 STEP 1 — Hidden Layer 1 (Sigmoid)</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500 mb-3">Formula: z = Σ(wᵢ × xᵢ), then a = σ(z) = 1/(1+e⁻ᶻ)</p>
+
+            <div class="space-y-4">
+              <!-- h1 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-indigo-400">Neuron h1:</p>
+                <div class="formula-box mt-1">
+                  $$z_{h1} = (0.45)(0.25) + (0.25)(0.35) + (0.15)(0.15)$$
+                  $$= 0.1125 + 0.0875 + 0.0225 = \mathbf{0.2225}$$
+                  $$a_{h1} = \sigma(0.2225) = \frac{1}{1+e^{-0.2225}} = \frac{1}{1+0.8005} \approx \mathbf{0.5554}$$
+                </div>
+              </div>
+              <!-- h2 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-indigo-400">Neuron h2:</p>
+                <div class="formula-box mt-1">
+                  $$z_{h2} = (0.45)(0.20) + (0.25)(0.30) + (0.15)(0.10)$$
+                  $$= 0.090 + 0.075 + 0.015 = \mathbf{0.1800}$$
+                  $$a_{h2} = \sigma(0.18) = \frac{1}{1+e^{-0.18}} = \frac{1}{1+0.8353} \approx \mathbf{0.5449}$$
+                </div>
+              </div>
+              <!-- h3 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-indigo-400">Neuron h3:</p>
+                <div class="formula-box mt-1">
+                  $$z_{h3} = (0.45)(0.40) + (0.25)(0.10) + (0.15)(0.45)$$
+                  $$= 0.180 + 0.025 + 0.0675 = \mathbf{0.2725}$$
+                  $$a_{h3} = \sigma(0.2725) = \frac{1}{1+e^{-0.2725}} = \frac{1}{1+0.7614} \approx \mathbf{0.5677}$$
+                </div>
+              </div>
+              <!-- h4 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-indigo-400">Neuron h4:</p>
+                <div class="formula-box mt-1">
+                  $$z_{h4} = (0.45)(0.30) + (0.25)(0.50) + (0.15)(0.20)$$
+                  $$= 0.135 + 0.125 + 0.030 = \mathbf{0.2900}$$
+                  $$a_{h4} = \sigma(0.29) = \frac{1}{1+e^{-0.29}} = \frac{1}{1+0.7483} \approx \mathbf{0.5720}$$
+                </div>
+              </div>
+            </div>
+
+            <div class="success-box mt-3">
+              <p class="font-bold text-emerald-400 text-xs">Hidden Layer 1 Outputs (Sigmoid):</p>
+              <p class="font-mono text-sm dark:text-emerald-300 text-emerald-700 mt-1">a_h1=0.5554, a_h2=0.5449, a_h3=0.5677, a_h4=0.5720</p>
+            </div>
+          </div>
+
+          <div class="step-box mt-4" style="border-color:#4ade80">
+            <p class="font-bold text-emerald-300 text-sm mb-3">📊 STEP 2 — Hidden Layer 2 (ReLU)</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500 mb-3">Formula: z = Σ(wᵢ × aᵢ), then a = ReLU(z) = max(0, z)</p>
+
+            <div class="space-y-4">
+              <!-- j1 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-emerald-400">Neuron j1:</p>
+                <div class="formula-box mt-1">
+                  $$z_{j1} = (0.5554)(0.15) + (0.5449)(0.30) + (0.5677)(0.20) + (0.5720)(0.25)$$
+                  $$= 0.08331 + 0.16347 + 0.11354 + 0.14300 = \mathbf{0.5033}$$
+                  $$a_{j1} = \text{ReLU}(0.5033) = \mathbf{0.5033}$$
+                </div>
+              </div>
+              <!-- j2 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-emerald-400">Neuron j2:</p>
+                <div class="formula-box mt-1">
+                  $$z_{j2} = (0.5554)(0.25) + (0.5449)(0.40) + (0.5677)(0.15) + (0.5720)(0.60)$$
+                  $$= 0.13885 + 0.21796 + 0.08516 + 0.34320 = \mathbf{0.7852}$$
+                  $$a_{j2} = \text{ReLU}(0.7852) = \mathbf{0.7852}$$
+                </div>
+              </div>
+              <!-- j3 -->
+              <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+                <p class="text-sm font-bold text-emerald-400">Neuron j3:</p>
+                <div class="formula-box mt-1">
+                  $$z_{j3} = (0.5554)(0.45) + (0.5449)(0.35) + (0.5677)(0.55) + (0.5720)(0.25)$$
+                  $$= 0.24993 + 0.19072 + 0.31224 + 0.14300 = \mathbf{0.8959}$$
+                  $$a_{j3} = \text{ReLU}(0.8959) = \mathbf{0.8959}$$
+                </div>
+              </div>
+            </div>
+
+            <div class="success-box mt-3">
+              <p class="font-bold text-emerald-400 text-xs">Hidden Layer 2 Outputs (ReLU):</p>
+              <p class="font-mono text-sm dark:text-emerald-300 text-emerald-700 mt-1">a_j1=0.5033, a_j2=0.7852, a_j3=0.8959</p>
+            </div>
+          </div>
+
+          <div class="step-box mt-4" style="border-color:#fb923c">
+            <p class="font-bold text-orange-300 text-sm mb-3">📊 STEP 3 — Output Layer (Softmax)</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500 mb-3">First compute pre-activations z, then apply Softmax across all outputs</p>
+
+            <div class="dark:bg-slate-900 bg-white rounded-lg p-3 mb-3">
+              <p class="text-sm font-bold text-orange-400">Pre-activations z_o1 and z_o2:</p>
+              <div class="formula-box mt-1">
+                $$z_{o1} = (0.5033)(0.40) + (0.7852)(0.30) + (0.8959)(0.10)$$
+                $$= 0.20132 + 0.23556 + 0.08959 = \mathbf{0.5265}$$
+                $$z_{o2} = (0.5033)(0.50) + (0.7852)(0.25) + (0.8959)(0.30)$$
+                $$= 0.25165 + 0.19630 + 0.26877 = \mathbf{0.7167}$$
+              </div>
+            </div>
+            <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+              <p class="text-sm font-bold text-orange-400">Softmax:</p>
+              <div class="formula-box mt-1">
+                $$e^{z_{o1}} = e^{0.5265} \approx 1.6929 \qquad e^{z_{o2}} = e^{0.7167} \approx 2.0477$$
+                $$\text{Sum} = 1.6929 + 2.0477 = 3.7406$$
+                $$o_1 = \frac{1.6929}{3.7406} \approx \mathbf{0.4526} \qquad o_2 = \frac{2.0477}{3.7406} \approx \mathbf{0.5474}$$
+              </div>
+            </div>
+
+            <div class="success-box mt-3">
+              <p class="font-bold text-emerald-400 text-xs">Final Output:</p>
+              <p class="font-mono text-sm dark:text-emerald-300 text-emerald-700 mt-1">ŷ = [o1=0.4526, o2=0.5474]</p>
+              <p class="text-xs dark:text-slate-400 text-slate-500 mt-1">Network predicts class 2 with 54.7% probability (but actual is class 1!)</p>
+            </div>
+          </div>
+
+          <div class="step-box mt-4" style="border-color:#f43f5e">
+            <p class="font-bold text-rose-300 text-sm mb-3">📊 STEP 4 — Log Loss Calculation</p>
+            <p class="text-xs dark:text-slate-400 text-slate-500 mb-3">
+              Formula: Log Loss = −yᵢ·log(o_outᵢ) − (1−yᵢ)·log(1−o_outᵢ)<br>
+              Actual: y=[1.0, 0.0], Predicted: ŷ=[0.4526, 0.5474]
+            </p>
+
+            <div class="dark:bg-slate-900 bg-white rounded-lg p-3 mb-3">
+              <p class="text-sm font-bold text-rose-400">Loss for Output 1 (y₁=1.0, o₁=0.4526):</p>
+              <div class="formula-box mt-1">
+                $$\mathcal{L}_1 = -(1.0)\cdot\ln(0.4526) - (1-1.0)\cdot\ln(1-0.4526)$$
+                $$= -\ln(0.4526) - 0 = -(-0.7937) = \mathbf{0.7937}$$
+              </div>
+              <p class="text-xs text-indigo-300 mt-1">Since y=1, second term vanishes. Loss penalizes low predicted probability for the true class.</p>
+            </div>
+            <div class="dark:bg-slate-900 bg-white rounded-lg p-3">
+              <p class="text-sm font-bold text-rose-400">Loss for Output 2 (y₂=0.0, o₂=0.5474):</p>
+              <div class="formula-box mt-1">
+                $$\mathcal{L}_2 = -(0.0)\cdot\ln(0.5474) - (1-0.0)\cdot\ln(1-0.5474)$$
+                $$= 0 - \ln(0.4526) = 0.7937$$
+                $$\mathbf{\mathcal{L}_2 = 0.7937}$$
+              </div>
+              <p class="text-xs text-indigo-300 mt-1">Since y=0, first term vanishes. Loss penalizes high predicted probability for a false class.</p>
+            </div>
+            <div class="formula-box mt-3">
+              $$\mathcal{L}_{\text{total}} = \mathcal{L}_1 + \mathcal{L}_2 = 0.7937 + 0.7937 = \mathbf{1.5874}$$
+            </div>
+            <div class="warn-box mt-3">
+              <p class="text-xs dark:text-slate-300 text-slate-600">
+                <strong>Interpretation:</strong> The loss of 1.5874 is relatively high because the network predicted the wrong class (o2 &gt; o1 but y1=1, y2=0). After training, weights would be updated via backpropagation to reduce this loss.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRACTICE PROBLEMS ===== -->
+      <div class="mt-8 mb-3 flex items-center gap-3">
+        <div class="h-px flex-1 dark:bg-slate-700 bg-slate-200"></div>
+        <span class="font-bold text-indigo-400 text-sm">PRACTICE SET — 5 CT-Style Problems</span>
+        <div class="h-px flex-1 dark:bg-slate-700 bg-slate-200"></div>
+      </div>
+
+      <!-- Practice 1 -->
+      <div class="card border border-indigo-700">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge badge-blue">Practice P1</span>
+          <span class="text-sm font-bold dark:text-slate-300 text-slate-600">Resolution Analysis [6 marks]</span>
+        </div>
+        <div class="warn-box mb-4">
+          <p class="text-sm dark:text-slate-300 text-slate-600">
+            A company is developing a satellite imaging system. Prototype A captures 4096×4096 pixel images with only 2-bit intensity. Prototype B captures 1024×1024 images with 16-bit intensity.
+            <br>(i) Which prototype is better for detecting thin roads? [2]
+            <br>(ii) Which is better for classifying land-use types (forest vs urban vs water)? [2]
+            <br>(iii) What artifact will appear in Prototype A's images? Explain. [2]
+          </p>
+        </div>
+        <details class="cursor-pointer">
+          <summary class="text-indigo-400 font-bold text-sm hover:text-indigo-300">▶ Show Solution</summary>
+          <div class="mt-3 space-y-2">
+            <div class="step-box">
+              <p class="text-sm font-bold text-indigo-400">(i) Thin roads → Prototype A</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Roads are narrow structures requiring fine spatial detail. Prototype A's 4096×4096 spatial resolution captures sub-meter detail. Prototype B's 1024×1024 may cause thin roads to disappear.</p>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-indigo-400">(ii) Land-use classification → Prototype B</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Forest, urban, and water differ in spectral reflectance intensity. 16-bit = 65,536 levels provides excellent discrimination. 2-bit = only 4 levels — forest and water may map to the same level!</p>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-indigo-400">(iii) Artifact in Prototype A → False Contouring</p>
+              <div class="formula-box mt-1">$$2\text{-bit} \Rightarrow L = 2^2 = 4 \text{ gray levels only}$$</div>
+              <p class="text-sm dark:text-slate-300 text-slate-600 mt-1">With only 4 levels, smooth intensity gradients (e.g., sunrise lighting on terrain) will appear as abrupt bands — false contours — making natural features look artificially stepped.</p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Practice 2 -->
+      <div class="card border border-teal-700">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge badge-green">Practice P2</span>
+          <span class="text-sm font-bold dark:text-slate-300 text-slate-600">m-Adjacency Analysis [6 marks]</span>
+        </div>
+        <div class="warn-box mb-4">
+          <p class="text-sm dark:text-slate-300 text-slate-600">Given the following 3×3 image with V = {1, 2}:</p>
+          <div class="font-mono text-center mt-2 dark:text-white text-slate-800">
+            <div class="grid grid-cols-3 gap-1 max-w-[120px] mx-auto text-sm">
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">2</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">0</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">1</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">0</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">2</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">0</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">1</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">0</div>
+              <div class="dark:bg-slate-700 bg-slate-200 rounded p-2 text-center">2</div>
+            </div>
+          </div>
+          <p class="text-sm dark:text-slate-300 text-slate-600 mt-2">Label positions as a(0,0), b(0,1), c(0,2), d(1,0), e(1,1), f(1,2), g(2,0), h(2,1), i(2,2).<br>
+          (i) Are a and e m-adjacent? (ii) Are c and e m-adjacent? (iii) Are a and c m-adjacent?</p>
+        </div>
+        <details class="cursor-pointer">
+          <summary class="text-teal-400 font-bold text-sm hover:text-teal-300">▶ Show Solution</summary>
+          <div class="mt-3 space-y-2">
+            <div class="step-box">
+              <p class="text-sm font-bold text-teal-400">(i) a(val=2) and e(val=2) — m-adjacent?</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Both in V={1,2}. Is e in N4(a)? No (diagonal). Is e in ND(a)? Yes. Check N4(a)∩N4(e) = {b(0), d(0)}. b=0, d=0 — neither in V. <strong>∴ Condition 2 satisfied.</strong></p>
+              <p class="text-emerald-400 font-bold text-sm">✅ a and e ARE m-adjacent</p>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-teal-400">(ii) c(val=1) and e(val=2) — m-adjacent?</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Both in V. Is e in N4(c)? No. Is e in ND(c)? Yes. Check N4(c)∩N4(e) = {b(0), f(0)}. b=0, f=0 — not in V. <strong>∴ Condition 2 satisfied.</strong></p>
+              <p class="text-emerald-400 font-bold text-sm">✅ c and e ARE m-adjacent</p>
+            </div>
+            <div class="step-box border-red-500" style="border-color:#ef4444">
+              <p class="text-sm font-bold text-red-400">(iii) a(val=2) and c(val=1) — m-adjacent?</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Both in V. Is c in N4(a)? No. Is c in ND(a)? No (not diagonal neighbors — they are in the same row but 2 apart). c is at (0,2), a is at (0,0). Not even in N8(a). <strong>∴ Neither condition applies.</strong></p>
+              <p class="text-red-400 font-bold text-sm">❌ a and c are NOT m-adjacent (not in each other's neighborhood)</p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Practice 3 -->
+      <div class="card border border-purple-700">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge badge-purple">Practice P3</span>
+          <span class="text-sm font-bold dark:text-slate-300 text-slate-600">ANN Design Question [4 marks]</span>
+        </div>
+        <div class="warn-box mb-4">
+          <p class="text-sm dark:text-slate-300 text-slate-600">
+            You are building a medical image classification system for MRI scans. Each scan is 32×32 pixels.
+            The system must classify into 3 disease categories: "Healthy", "Stage 1", "Stage 2".
+            <br>(i) How many neurons in the input and output layer? [1]
+            <br>(ii) Which activation for the output layer and why? [1]
+            <br>(iii) A developer suggests using Sigmoid in the output instead. What problem would this cause? [2]
+          </p>
+        </div>
+        <details class="cursor-pointer">
+          <summary class="text-purple-400 font-bold text-sm hover:text-purple-300">▶ Show Solution</summary>
+          <div class="mt-3 space-y-2">
+            <div class="step-box">
+              <p class="text-sm font-bold text-purple-400">(i) Neuron count</p>
+              <div class="formula-box mt-1">$$\text{Input} = 32 \times 32 = 1024, \quad \text{Output} = 3$$</div>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-purple-400">(ii) Output activation → Softmax</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Softmax is correct because: (a) outputs sum to 1.0, interpretable as probabilities, (b) designed for mutually exclusive multi-class problems, (c) forces competition between classes.</p>
+            </div>
+            <div class="step-box border-red-500" style="border-color:#ef4444">
+              <p class="text-sm font-bold text-red-400">(iii) Problem with Sigmoid on 3-class output</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Sigmoid treats each output independently. The three outputs could all be 0.8, 0.9, 0.7 — summing to 2.4, which is meaningless as a probability distribution. You cannot determine which class is "most likely" without additional normalization. The outputs don't compete with each other, so the model can simultaneously predict all classes as highly probable — an incoherent result.</p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Practice 4 -->
+      <div class="card border border-orange-700">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge badge-orange">Practice P4</span>
+          <span class="text-sm font-bold dark:text-slate-300 text-slate-600">Mini Forward Propagation [6 marks]</span>
+        </div>
+        <div class="warn-box mb-4">
+          <p class="text-sm dark:text-slate-300 text-slate-600">
+            Consider a simple ANN: Input [x1=0.5, x2=0.3], one hidden neuron h1 (Sigmoid), one output o1 (Sigmoid).
+            <br>Weights: w(x1→h1)=0.6, w(x2→h1)=0.4, w(h1→o1)=0.8. No biases.
+            <br>Actual output: y=1.
+            <br>(i) Calculate h1 output [2] (ii) Calculate o1 output [2] (iii) Calculate log loss [2]
+          </p>
+        </div>
+        <details class="cursor-pointer">
+          <summary class="text-orange-400 font-bold text-sm hover:text-orange-300">▶ Show Solution</summary>
+          <div class="mt-3 space-y-2">
+            <div class="step-box">
+              <p class="text-sm font-bold text-orange-400">(i) Hidden neuron h1</p>
+              <div class="formula-box mt-1">
+                $$z_{h1} = (0.5)(0.6) + (0.3)(0.4) = 0.30 + 0.12 = 0.42$$
+                $$a_{h1} = \sigma(0.42) = \frac{1}{1+e^{-0.42}} = \frac{1}{1+0.6570} \approx \mathbf{0.6035}$$
+              </div>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-orange-400">(ii) Output neuron o1</p>
+              <div class="formula-box mt-1">
+                $$z_{o1} = (0.6035)(0.8) = 0.4828$$
+                $$a_{o1} = \sigma(0.4828) = \frac{1}{1+e^{-0.4828}} \approx \frac{1}{1+0.6171} \approx \mathbf{0.6183}$$
+              </div>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-orange-400">(iii) Log Loss (y=1, ŷ=0.6183)</p>
+              <div class="formula-box mt-1">
+                $$\mathcal{L} = -(1.0)\ln(0.6183) - (0)\ln(1-0.6183)$$
+                $$= -(-0.4804) = \mathbf{0.4804}$$
+              </div>
+              <p class="text-xs text-emerald-400 mt-1">Lower than CT Q4's loss because the prediction (0.618) is closer to the correct label (1) than in Q4 (0.453).</p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Practice 5 -->
+      <div class="card border border-rose-700">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge" style="background:#7f1d1d;color:#fecaca;">Practice P5</span>
+          <span class="text-sm font-bold dark:text-slate-300 text-slate-600">Comprehensive Image Concepts [6 marks]</span>
+        </div>
+        <div class="warn-box mb-4">
+          <p class="text-sm dark:text-slate-300 text-slate-600">
+            (i) A grayscale image has 1024×768 resolution at 8-bit depth. Calculate the total number of pixels, gray levels, and file size in KB. [2]
+            <br>(ii) The same image is converted to binary (1-bit). What visual artifact might appear on diagonal edges? [2]
+            <br>(iii) In pixel adjacency, why is m-adjacency preferred over 8-adjacency for path tracing? [2]
+          </p>
+        </div>
+        <details class="cursor-pointer">
+          <summary class="text-rose-400 font-bold text-sm hover:text-rose-300">▶ Show Solution</summary>
+          <div class="mt-3 space-y-2">
+            <div class="step-box">
+              <p class="text-sm font-bold text-rose-400">(i) Image parameters</p>
+              <div class="formula-box mt-1">
+                $$\text{Total pixels} = 1024 \times 768 = 786{,}432 \text{ pixels}$$
+                $$\text{Gray levels} = 2^8 = 256$$
+                $$\text{File size} = \frac{1024 \times 768 \times 8}{8 \times 1024} = \frac{786{,}432}{1024} = 768 \text{ KB}$$
+              </div>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-rose-400">(ii) 1-bit binary → Jagged Lines (Aliasing)</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">Diagonal edges that were smooth in 8-bit become jagged staircase patterns. With only 2 intensity levels (0 or 1), fine angular information is lost — pixels can only be fully ON or OFF, so curves and diagonals appear as staircases. This is spatial aliasing from extreme quantization.</p>
+            </div>
+            <div class="step-box">
+              <p class="text-sm font-bold text-rose-400">(iii) m-adjacency vs 8-adjacency for path tracing</p>
+              <p class="text-sm dark:text-slate-300 text-slate-600">8-adjacency allows multiple paths between two pixels (via both N4 and ND neighbors), creating <strong>path ambiguity</strong>. Two pixels may have more than one shortest path, making algorithms like flood-fill or segmentation non-deterministic. m-adjacency eliminates this by using diagonal connections ONLY when no 4-neighbor alternative exists, guaranteeing a unique, unambiguous path between connected pixels.</p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Summary Cheatsheet -->
+      <div class="card dark:bg-indigo-950 bg-indigo-50 border border-indigo-500 mt-6">
+        <h3 class="font-bold text-indigo-300 mb-3">⚡ Quick Cheatsheet — CT Formula Sheet</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="font-bold text-indigo-400 mb-1">Image Fundamentals</p>
+            <ul class="space-y-1 dark:text-slate-300 text-slate-600">
+              <li>Gray Levels: $L = 2^k$</li>
+              <li>Storage: $\frac{M \times N \times k}{8}$ bytes</li>
+              <li>Total Pixels: $M \times N$</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-bold text-indigo-400 mb-1">Activation Functions</p>
+            <ul class="space-y-1 dark:text-slate-300 text-slate-600">
+              <li>Sigmoid: $\frac{1}{1+e^{-z}}$, range (0,1)</li>
+              <li>ReLU: $\max(0,z)$, range $[0,\infty)$</li>
+              <li>Softmax: $\frac{e^{z_k}}{\sum e^{z_j}}$, sums to 1</li>
+              <li>Tanh: $\frac{e^z-e^{-z}}{e^z+e^{-z}}$, range (-1,1)</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-bold text-indigo-400 mb-1">Adjacency Rules (V = intensity set)</p>
+            <ul class="space-y-1 dark:text-slate-300 text-slate-600">
+              <li>4-adj: q ∈ N4(p) and f(q) ∈ V</li>
+              <li>8-adj: q ∈ N8(p) and f(q) ∈ V</li>
+              <li>m-adj: q ∈ N4(p) OR [q ∈ ND(p) and N4(p)∩N4(q)∩V=∅]</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-bold text-indigo-400 mb-1">Loss &amp; ANN</p>
+            <ul class="space-y-1 dark:text-slate-300 text-slate-600">
+              <li>Forward: $z = \sum w_i a_i$, then $a = g(z)$</li>
+              <li>Log Loss: $-y\log(o) - (1-y)\log(1-o)$</li>
+              <li>Input nodes = image pixels (M×N)</li>
+              <li>Output nodes = number of classes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="dark:bg-slate-800 bg-white border-t dark:border-slate-700 border-slate-200 mt-12 py-6 text-center">
+    <p class="dark:text-slate-400 text-slate-500 text-sm">CSE 4883 · Digital Image Processing · United International University</p>
+    <p class="dark:text-slate-500 text-slate-400 text-xs mt-1">Notes generated from lecture slides by Lec. Raiyan Rahman · Md. Tanvir Raihan</p>
+  </footer>
+
+  <script>
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('themeLabel').textContent = isDark ? 'Light' : 'Dark';
+    }
+
+    // Tab navigation
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('border-indigo-500', 'text-indigo-400');
+        b.style.borderBottomColor = 'transparent';
+        b.style.color = '';
+      });
+
+      const activeBtn = document.getElementById('tab-' + id);
+      activeBtn.style.borderBottomColor = '#6366f1';
+      activeBtn.style.color = '#818cf8';
+
+      // Re-render MathJax
+      if (window.MathJax) {
+        MathJax.typesetPromise().catch(err => console.log(err));
+      }
+    }
+
+    // Initialize first tab
+    showSection('s1');
+  </script>
+</body>
+</html>
