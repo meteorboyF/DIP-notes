@@ -1,23 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CSE 4833 – Digital Image Processing Notes</title>
+
+  <!-- Google Fonts: Cozy Academic Stack -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Lora:wght@400;500;600&family=Quicksand:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 500: '#6366f1', 600: '#4f46e5', 400: '#818cf8' },
-            surface: { dark: '#0f172a', card: '#1e293b', border: '#334155' }
-          }
-        }
-      }
+      theme: { extend: {} }
     }
   </script>
 
@@ -31,77 +29,663 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 
   <style>
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .tab-btn.active { @apply border-b-2; border-color: #6366f1; color: #6366f1; }
+    /* ============================================================
+       COZY ACADEMIC THEME — CSE 4833 DIP Notes
+       Light: Warm Cream | Dark: Deep Espresso
+    ============================================================ */
+
+    /* --- CSS Variables (Light) --- */
+    :root {
+      --bg:           #FDFCF0;
+      --surface:      #FFF9F2;
+      --surface-alt:  #FAF5EC;
+      --primary:      #8C6A5D;
+      --accent:       #606C38;
+      --accent-soft:  #7a8c50;
+      --text:         #2D2A26;
+      --text-muted:   #7a6c65;
+      --text-light:   #a89690;
+      --border:       rgba(140,106,93,0.18);
+      --border-solid: #e4d9d0;
+      --shadow-sm:    0 2px 12px rgba(140,106,93,0.09);
+      --shadow-md:    0 6px 28px rgba(140,106,93,0.13);
+      --shadow-lg:    0 12px 48px rgba(140,106,93,0.15);
+      --radius-card:  26px;
+      --radius-pill:  100px;
+    }
+
+    /* --- Dark Mode Variables --- */
+    .dark {
+      --bg:           #1C1C1C;
+      --surface:      #252525;
+      --surface-alt:  #2e2e2e;
+      --primary:      #D4A373;
+      --accent:       #BC6C25;
+      --accent-soft:  #d4853a;
+      --text:         #E9EDC9;
+      --text-muted:   #a8a090;
+      --text-light:   #6b6358;
+      --border:       rgba(212,163,115,0.18);
+      --border-solid: #3d3530;
+      --shadow-sm:    0 2px 12px rgba(0,0,0,0.25);
+      --shadow-md:    0 6px 28px rgba(0,0,0,0.35);
+      --shadow-lg:    0 12px 48px rgba(0,0,0,0.4);
+    }
+
+    /* --- Base --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Quicksand', 'Inter', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      transition: background-color 0.35s ease, color 0.35s ease;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* --- Paper Texture Overlay --- */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+
+    /* --- Watercolor Background Blobs --- */
+    .blob-container {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      animation: blobFloat 12s ease-in-out infinite;
+    }
+    .blob-1 { width:420px; height:420px; top:-80px; left:-80px;   background:rgba(140,106,93,0.08); animation-delay:0s; }
+    .blob-2 { width:320px; height:320px; top:40%;  right:-60px;   background:rgba(96,108,56,0.07);  animation-delay:-4s; }
+    .blob-3 { width:280px; height:280px; bottom:0; left:35%;       background:rgba(140,106,93,0.06); animation-delay:-8s; }
+    .dark .blob-1 { background:rgba(212,163,115,0.07); }
+    .dark .blob-2 { background:rgba(188,108,37,0.06); }
+    .dark .blob-3 { background:rgba(212,163,115,0.05); }
+
+    @keyframes blobFloat {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(24px,-18px) scale(1.04); }
+      66%      { transform: translate(-16px,22px) scale(0.97); }
+    }
+
+    /* --- Layout Wrapper --- */
+    .page-content { position: relative; z-index: 1; }
+
+    /* =============================================
+       NAVIGATION — Floating Glassmorphism Pill
+    ============================================= */
+    .nav-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 10px 16px 0;
+      background: transparent;
+    }
+    .nav-glass {
+      max-width: 860px;
+      margin: 0 auto;
+      background: rgba(253,252,240,0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-solid);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-md);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+    .dark .nav-glass {
+      background: rgba(37,37,37,0.88);
+      border-color: var(--border-solid);
+    }
+    .nav-tabs { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 100px;
+      white-space: nowrap;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+    .tab-btn:hover { color: var(--primary); background: rgba(140,106,93,0.08); }
+    .tab-btn.active-tab {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(140,106,93,0.3);
+    }
+    .dark .tab-btn.active-tab { box-shadow: 0 2px 10px rgba(212,163,115,0.3); }
+
+    .theme-toggle {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border-solid);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+    .theme-toggle:hover { transform: scale(1.1); }
+
+    /* =============================================
+       SITE HEADER (above nav)
+    ============================================= */
+    .site-header {
+      padding: 32px 24px 8px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .site-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .site-header p {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .header-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-family: 'Caveat', cursive;
+      font-size: 0.95rem;
+      color: var(--accent);
+      background: rgba(96,108,56,0.1);
+      padding: 3px 14px;
+      border-radius: 100px;
+    }
+    .dark .header-badge { background: rgba(188,108,37,0.15); color: var(--accent-soft); }
+
+    /* =============================================
+       SECTIONS
+    ============================================= */
     .section { display: none; }
     .section.active { display: block; }
-    .card { @apply rounded-xl p-5 mb-5; }
-    .dark .card { background: #1e293b; border: 1px solid #334155; }
-    .light .card, html:not(.dark) .card { background: #f8fafc; border: 1px solid #e2e8f0; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; position: relative; z-index: 1; }
+
+    /* Section title block */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      margin-top: 8px;
+    }
+    .section-icon {
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 1px solid var(--border-solid);
+    }
+    .section-title h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+    }
+    .section-title p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* =============================================
+       CARDS
+    ============================================= */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border-solid);
+      border-radius: var(--radius-card);
+      padding: 24px 28px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.25s ease;
+    }
+    .card:hover { box-shadow: var(--shadow-md); }
+
+    .card h3 {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(140,106,93,0.2);
+    }
+    .dark .card h3 { border-bottom-color: rgba(212,163,115,0.2); }
+
+    /* =============================================
+       FORMULA BOX
+    ============================================= */
     .formula-box {
-      background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
-      border: 1px solid #6366f1;
+      background: rgba(253,252,240,0.9);
+      border: 1.5px solid rgba(96,108,56,0.35);
+      border-radius: 16px;
+      padding: 18px 22px;
+      margin: 14px 0;
+      overflow-x: auto;
+      color: var(--text);
+      text-align: center;
+    }
+    .dark .formula-box {
+      background: rgba(28,28,28,0.6);
+      border-color: rgba(188,108,37,0.4);
+    }
+    .formula-box p {
+      font-family: 'Caveat', cursive;
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* =============================================
+       STEP BOX
+    ============================================= */
+    .step-box {
+      border-left: 3.5px solid var(--primary);
+      background: rgba(140,106,93,0.06);
+      padding: 14px 18px;
+      margin: 10px 0;
+      border-radius: 0 14px 14px 0;
+    }
+    .dark .step-box { background: rgba(212,163,115,0.06); }
+
+    /* =============================================
+       WARN / SUCCESS BOXES
+    ============================================= */
+    .warn-box {
+      border: 1.5px solid rgba(188,108,37,0.4);
+      background: rgba(254,243,199,0.5);
+      border-radius: 14px;
+      padding: 14px 18px;
+    }
+    .dark .warn-box {
+      background: rgba(188,108,37,0.1);
+      border-color: rgba(188,108,37,0.4);
+    }
+    .success-box {
+      border: 1.5px solid rgba(96,108,56,0.4);
+      background: rgba(96,108,56,0.07);
+      border-radius: 14px;
+      padding: 14px 18px;
+    }
+    .dark .success-box { background: rgba(96,108,56,0.1); }
+
+    /* =============================================
+       BADGES
+    ============================================= */
+    .badge {
+      display: inline-block;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .badge-blue   { background: rgba(96,108,56,0.12);  color: var(--accent); }
+    .badge-green  { background: rgba(96,108,56,0.15);  color: #3d5a20; }
+    .badge-purple { background: rgba(140,106,93,0.12); color: var(--primary); }
+    .badge-orange { background: rgba(188,108,37,0.12); color: #7a4a1a; }
+    .dark .badge-blue   { color: var(--accent-soft); }
+    .dark .badge-green  { background: rgba(96,108,56,0.2); color: #a8c070; }
+    .dark .badge-purple { color: var(--primary); }
+    .dark .badge-orange { color: var(--accent-soft); }
+
+    /* =============================================
+       TABLES
+    ============================================= */
+    table { width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; }
+    th, td { padding: 11px 15px; text-align: left; border: 1px solid var(--border-solid); font-size: 13.5px; }
+    th { background: var(--surface-alt); color: var(--text-muted); font-weight: 600; }
+    tr:hover td { background: rgba(140,106,93,0.05); }
+
+    /* =============================================
+       CODE / PRE
+    ============================================= */
+    pre {
+      background: #2a2420;
+      color: #e9d8c8;
+      border-radius: 16px;
+      padding: 20px 22px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.65;
+      overflow-x: auto;
+      box-shadow: var(--shadow-md);
+    }
+    code { font-family: 'JetBrains Mono', monospace; }
+
+    /* =============================================
+       NEURAL NETWORK DIAGRAM
+    ============================================= */
+    .nn-container {
+      display: flex; align-items: center; justify-content: center;
+      gap: 28px; padding: 24px; overflow-x: auto;
+      background: var(--surface-alt);
+      border-radius: 20px;
+      border: 1px solid var(--border-solid);
+    }
+    .nn-layer { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .nn-node {
+      width: 54px; height: 54px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 11px; border: 2px solid;
+    }
+    .layer-label { font-size: 10.5px; color: var(--text-muted); text-align: center; margin-bottom: 6px; font-family: 'Caveat', cursive; font-size: 13px; }
+
+    /* =============================================
+       DIAGRAM FLOW (pipeline)
+    ============================================= */
+    .diagram-flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .arrow { color: var(--primary); font-size: 22px; }
+
+    /* =============================================
+       HANDWRITTEN PROTIP
+    ============================================= */
+    .protip {
+      font-family: 'Caveat', cursive;
+      font-size: 1.05rem;
+      color: var(--accent);
+      background: rgba(96,108,56,0.08);
       border-radius: 12px;
+      padding: 10px 16px;
+      margin: 10px 0;
+    }
+    .dark .protip { background: rgba(96,108,56,0.12); color: var(--accent-soft); }
+
+    /* =============================================
+       TYPOGRAPHY OVERRIDES
+    ============================================= */
+    h1,h2,h3,h4,h5 { color: var(--text); }
+    p, li { color: var(--text); }
+    strong { color: var(--text); font-weight: 700; }
+    a { color: var(--accent); }
+
+    /* =============================================
+       TAILWIND CLASS OVERRIDES → Cozy Palette
+    ============================================= */
+    /* Heading colors */
+    .text-indigo-400, .text-orange-400 { color: var(--primary) !important; }
+    .text-teal-400    { color: var(--accent) !important; }
+    .text-purple-400  { color: #7c5c88 !important; }
+    .dark .text-purple-400 { color: #c4a0cc !important; }
+    .text-rose-400    { color: #a85050 !important; }
+    .text-emerald-400 { color: var(--accent) !important; }
+    .text-pink-400    { color: #b0597a !important; }
+    .text-amber-400   { color: #8C6A5D !important; }
+
+    .text-indigo-300, .text-emerald-300, .text-orange-300,
+    .text-purple-300, .text-rose-300    { color: var(--text-muted) !important; }
+    .text-teal-300    { color: var(--accent-soft) !important; }
+
+    /* Muted text */
+    .text-slate-500, .text-slate-600, .text-slate-400, .text-slate-300 { color: var(--text-muted) !important; }
+
+    /* Background-colored small cards & containers */
+    .bg-slate-100, .bg-slate-700,
+    .dark\:bg-slate-700, .dark\:bg-slate-800 { background-color: var(--surface-alt) !important; }
+    .dark\:bg-slate-900 { background-color: var(--surface) !important; }
+    .bg-white { background-color: var(--surface) !important; }
+
+    /* Section icon backgrounds (old Tailwind indigo/teal etc.) */
+    .bg-indigo-600, .bg-orange-600, .bg-teal-600,
+    .bg-purple-600, .bg-rose-600 { background-color: var(--surface-alt) !important; border: 1px solid var(--border-solid) !important; }
+
+    /* Indigo-700/950 borders */
+    .border-indigo-700 { border-color: rgba(140,106,93,0.4) !important; }
+    .border-teal-700   { border-color: rgba(96,108,56,0.4) !important; }
+    .border-purple-700 { border-color: rgba(124,92,136,0.4) !important; }
+    .border-orange-700 { border-color: rgba(188,108,37,0.4) !important; }
+    .border-rose-700   { border-color: rgba(168,80,80,0.4) !important; }
+    .border-indigo-500 { border-color: rgba(140,106,93,0.5) !important; }
+
+    /* cheatsheet bottom card */
+    .dark\:bg-indigo-950, .bg-indigo-50, .dark\:bg-indigo-950.bg-indigo-50 {
+      background: rgba(96,108,56,0.06) !important;
+      border-color: rgba(96,108,56,0.3) !important;
+    }
+    .dark .dark\:bg-indigo-950 { background: rgba(96,108,56,0.1) !important; }
+
+    /* Pixel grid cells in adjacency examples */
+    .dark\:bg-slate-600 { background: var(--surface-alt) !important; }
+    .dark\:bg-orange-900 { background: rgba(188,108,37,0.1) !important; }
+    .dark\:bg-teal-800   { background: rgba(96,108,56,0.1) !important; }
+    .dark\:bg-purple-900 { background: rgba(124,92,136,0.1) !important; }
+    .dark\:bg-slate-700.bg-white { background: var(--surface) !important; }
+
+    /* indigo-600/700 background used for "p" node in grids */
+    .bg-indigo-600 { background-color: var(--primary) !important; color: #fff !important; }
+
+    /* inner mini-stat cards */
+    .dark\:bg-slate-700.bg-white { background: var(--surface) !important; }
+
+    /* inline badge BG used on CT section */
+    .bg-rose-700 { background: rgba(168,80,80,0.18) !important; color: #a85050 !important; }
+
+    /* text-emerald-* accents inside CT solutions */
+    .text-emerald-400, .dark\:text-emerald-300 { color: var(--accent) !important; }
+    .text-rose-400 { color: #a85050 !important; }
+    .text-red-400  { color: #a85050 !important; }
+
+    /* hover row */
+    tr:hover td { background: rgba(140,106,93,0.06) !important; }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border-solid);
+      background: var(--surface);
+      margin-top: 40px;
+      position: relative; z-index: 1;
+    }
+    footer p { color: var(--text-muted); font-size: 13px; }
+    footer p:last-child { font-family: 'Caveat', cursive; font-size: 1rem; color: var(--primary); margin-top: 4px; }
+
+    /* =============================================
+       SCROLLBAR
+    ============================================= */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface-alt); }
+    ::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 3px; }
+
+    /* =============================================
+       DETAILS / SUMMARY
+    ============================================= */
+    details summary { list-style: none; cursor: pointer; }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] summary { color: var(--primary); font-weight: 700; }
+
+    /* =============================================
+       MISC UTILITIES
+    ============================================= */
+    .calc-label { font-weight: 700; color: var(--primary); min-width: 60px; font-size: 13px; }
+    .calc-val   { font-size: 13px; color: var(--text); }
+    .dark\:bg-slate-900.bg-white { background: var(--surface-alt) !important; }
+
+    :root {
+      --bg-page:      #faf8f5;
+      --bg-card:      #ffffff;
+      --bg-card-alt:  #fdf9f4;
+      --border:       #e8e1d9;
+      --accent:       #c2410c;
+      --accent-soft:  #ea580c;
+      --accent-bg:    #fff7ed;
+      --text-main:    #1c1917;
+      --text-muted:   #78716c;
+      --text-label:   #57534e;
+      --shadow:       0 2px 12px rgba(120, 90, 60, 0.09);
+      --shadow-md:    0 4px 20px rgba(120, 90, 60, 0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.65;
+    }
+
+    /* Override Tailwind dark-mode utility classes to neutral when no dark class */
+    .dark\:bg-slate-900, .dark\:bg-slate-800, .dark\:bg-slate-700,
+    .dark\:text-slate-100, .dark\:text-slate-300, .dark\:text-slate-400 { all: unset; }
+
+    /* ---- TABS ---- */
+    .tab-btn {
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 10px 18px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      cursor: pointer;
+      background: none;
+      border-top: none; border-left: none; border-right: none;
+    }
+    .tab-btn:hover { color: var(--accent); }
+    .tab-btn.active-tab { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ---- CARDS ---- */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Section headings */
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #fed7aa;
+    }
+
+    /* ---- FORMULA BOX ---- */
+    .formula-box {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
       padding: 16px 20px;
       margin: 12px 0;
       overflow-x: auto;
+      color: #1c1917;
+      font-size: 0.93rem;
     }
-    html:not(.dark) .formula-box {
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      border: 1px solid #818cf8;
-    }
+    .formula-box p { color: #92400e; font-size: 0.78rem; margin-top: 6px; }
+
+    /* ---- STEP BOX ---- */
     .step-box {
-      border-left: 4px solid #6366f1;
+      border-left: 4px solid var(--accent-soft);
+      background: var(--accent-bg);
       padding: 12px 16px;
       margin: 8px 0;
-      border-radius: 0 8px 8px 0;
+      border-radius: 0 10px 10px 0;
     }
-    .dark .step-box { background: #0f172a; }
-    html:not(.dark) .step-box { background: #eef2ff; }
-    .badge { @apply text-xs font-bold px-2 py-1 rounded-full; }
-    .badge-blue { background: #1e40af; color: #bfdbfe; }
-    .badge-green { background: #14532d; color: #bbf7d0; }
-    .badge-purple { background: #581c87; color: #e9d5ff; }
-    .badge-orange { background: #7c2d12; color: #fed7aa; }
-    html:not(.dark) .badge-blue { background: #dbeafe; color: #1e40af; }
-    html:not(.dark) .badge-green { background: #dcfce7; color: #14532d; }
-    html:not(.dark) .badge-purple { background: #f3e8ff; color: #581c87; }
-    html:not(.dark) .badge-orange { background: #ffedd5; color: #7c2d12; }
-    .node-circle {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: bold; font-size: 12px;
+
+    /* ---- BADGES ---- */
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
     }
-    .diagram-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .arrow { color: #6366f1; font-size: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px 14px; text-align: left; border: 1px solid #334155; font-size: 14px; }
-    html:not(.dark) th, html:not(.dark) td { border-color: #e2e8f0; }
-    th { background: #1e293b; color: #94a3b8; }
-    html:not(.dark) th { background: #f1f5f9; color: #475569; }
-    tr:hover td { background: #1e3a5f22; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+    .badge-purple { background: #ede9fe; color: #6d28d9; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+
+    /* ---- WARN / SUCCESS ---- */
     .warn-box {
-      border: 1px solid #f59e0b;
-      background: #451a0322;
-      border-radius: 8px;
+      border: 1px solid #fcd34d;
+      background: #fffbeb;
+      border-radius: 10px;
       padding: 12px 16px;
     }
     .success-box {
-      border: 1px solid #10b981;
-      background: #022c2222;
-      border-radius: 8px;
+      border: 1px solid #86efac;
+      background: #f0fdf4;
+      border-radius: 10px;
       padding: 12px 16px;
     }
-    pre { overflow-x: auto; border-radius: 8px; padding: 16px; font-size: 13px; }
-    .dark pre { background: #0f172a; }
-    html:not(.dark) pre { background: #1e293b; color: #e2e8f0; }
-    .nn-layer {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
+
+    /* ---- TABLES ---- */
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border: 1px solid var(--border);
+      font-size: 13.5px;
     }
+    th {
+      background: #f5f0eb;
+      color: var(--text-label);
+      font-weight: 600;
+    }
+    tr:hover td { background: #fdf5ee; }
+
+    /* ---- CODE / PRE ---- */
+    pre {
+      background: #1c1917;
+      color: #e7e5e4;
+      overflow-x: auto;
+      border-radius: 10px;
+      padding: 18px;
+      font-size: 13px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ---- ARROWS ---- */
+    .diagram-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .arrow { color: var(--accent-soft); font-size: 20px; }
+
+    /* ---- NEURAL NET ---- */
+    .nn-layer { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .nn-node {
       width: 56px; height: 56px;
       border-radius: 50%;
@@ -110,84 +694,149 @@
       border: 2px solid;
     }
     .nn-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-      padding: 24px;
-      overflow-x: auto;
+      display: flex; align-items: center; justify-content: center;
+      gap: 32px; padding: 24px; overflow-x: auto;
+      background: #fdf9f4;
+      border-radius: 12px;
+      border: 1px solid var(--border);
     }
-    .layer-label {
-      font-size: 11px;
-      color: #94a3b8;
-      text-align: center;
-      margin-bottom: 8px;
-    }
-    .calc-row {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 8px;
-      align-items: start;
-      margin: 6px 0;
-    }
-    .calc-label {
-      font-weight: 700;
-      color: #818cf8;
-      min-width: 60px;
-      font-size: 13px;
-    }
-    .calc-val {
-      font-size: 13px;
-      color: #e2e8f0;
-    }
-    html:not(.dark) .calc-val { color: #1e293b; }
+    .layer-label { font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 8px; }
+    .calc-label { font-weight: 700; color: #b45309; min-width: 60px; font-size: 13px; }
+    .calc-val   { font-size: 13px; color: var(--text-main); }
+
+    /* ---- SECTION ICON PILLS ---- */
+    .section-icon-s1 { background: #fff7ed; }
+    .section-icon-s2 { background: #fef3c7; }
+    .section-icon-s3 { background: #ecfdf5; }
+    .section-icon-s4 { background: #f5f3ff; }
+    .section-icon-s5 { background: #fff1f2; }
+
+    /* ---- MISC ---- */
+    strong { color: #1c1917; }
+    details summary { list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details summary { cursor: pointer; }
+
+    /* Inline text colors for content */
+    .accent-text  { color: var(--accent); }
+    .muted-text   { color: var(--text-muted); }
+
+    /* ---- SCROLLBAR ---- */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f5f0eb; }
+    ::-webkit-scrollbar-thumb { background: #d6cdc4; border-radius: 3px; }
+
+    /* ---- OVERRIDE TAILWIND COLORS → COZY WARM PALETTE ---- */
+    /* Section icon pill backgrounds */
+    .bg-indigo-600 { background-color: #fff7ed !important; }
+    .bg-orange-600 { background-color: #fef3c7 !important; }
+    .bg-teal-600   { background-color: #f0fdfa !important; }
+    .bg-purple-600 { background-color: #faf5ff !important; }
+    .bg-rose-600   { background-color: #fff1f2 !important; }
+
+    /* Inner card-like containers (currently slate-700/slate-100) */
+    .bg-slate-100  { background-color: #fdf8f3 !important; }
+
+    /* Heading accent colors */
+    .text-indigo-400, .text-orange-400 { color: #c2410c !important; }
+    .text-teal-400   { color: #0e7490 !important; }
+    .text-purple-400 { color: #7c3aed !important; }
+    .text-rose-400   { color: #be123c !important; }
+    .text-emerald-400 { color: #059669 !important; }
+    .text-pink-400   { color: #db2777 !important; }
+    .text-amber-400  { color: #b45309 !important; }
+    .text-indigo-300, .text-emerald-300, .text-orange-300,
+    .text-purple-300, .text-rose-300   { color: #92400e !important; }
+
+    /* Summary/body text colors */
+    .text-slate-500  { color: #78716c !important; }
+    .text-slate-600  { color: #57534e !important; }
+    .text-slate-300  { color: #44403c !important; }
+    .text-slate-400  { color: #78716c !important; }
+
+    /* Mini stat cards */
+    .dark\:bg-slate-700,
+    .dark\:bg-slate-800  { background: transparent !important; }
+
+    /* Inner grid cards that use bg-white/slate */
+    .bg-white { background: #fff !important; }
+
+    /* indigo-950 / indigo-50 for cheatsheet card */
+    .dark\:bg-indigo-950 { background: #fef9f0 !important; }
+    .bg-indigo-50        { background: #fef9f0 !important; }
+    .border-indigo-500   { border-color: #fcd34d !important; }
+    .text-indigo-300     { color: #b45309 !important; }
+
+    /* CT / practice card tinted backgrounds */
+    .dark\:bg-slate-800  { background-color: #fdf8f3 !important; }
+    .bg-slate-800        { background-color: #1c1917 !important; } /* keep code pre dark */
+
+    /* Table hover warm */
+    tr:hover td { background: #fdf5ee !important; }
+
+    /* ANN diagram container in S4 */
+    .dark\:bg-slate-800.bg-slate-100 { background: #fdf8f3 !important; }
+
+    /* Neural net node inline styles are left as-is (they look fine on white) */
+
+    /* Cheatsheet last card warm tint */
+    .dark\:bg-indigo-950.bg-indigo-50 { background: #fffbeb !important; border-color: #fcd34d !important; }
+
+    /* Paragraph muted color fixes */
+    p.dark\:text-slate-300,
+    p.dark\:text-slate-400,
+    li.dark\:text-slate-300,
+    li.dark\:text-slate-400 { color: #44403c; }
+
+    /* Section card sub-blocks */
+    .dark\:bg-slate-700.bg-slate-100 { background: #fdf8f3 !important; }
+    .dark\:bg-slate-700.bg-white     { background: #ffffff !important; }
+    .dark\:bg-slate-900.bg-white     { background: #fffdf8 !important; }
+    .dark\:bg-slate-900              { background: #fffdf8 !important; }
+
   </style>
 </head>
 
-<body class="dark:bg-slate-900 bg-slate-50 dark:text-slate-100 text-slate-800 min-h-screen transition-colors duration-300">
+<body>
+  <!-- Watercolor Blobs -->
+  <div class="blob-container" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
 
-  <!-- ===== HEADER ===== -->
-  <header class="dark:bg-slate-800 bg-white shadow-lg sticky top-0 z-50 border-b dark:border-slate-700 border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-extrabold text-indigo-400">CSE 4833 &mdash; Digital Image Processing</h1>
-        <p class="text-xs dark:text-slate-400 text-slate-500">United International University &bull; Class Test Ready Notes</p>
+  <div class="page-content">
+
+  <!-- ===== SITE HEADER ===== -->
+  <div class="site-header">
+    <h1>CSE 4833 — Digital Image Processing</h1>
+    <p>United International University &nbsp;·&nbsp; Class Test Ready Notes</p>
+    <span class="header-badge">✦ A cozy space for deep learning ✦</span>
+  </div>
+
+  <!-- ===== FLOATING PILL NAV ===== -->
+  <div class="nav-wrapper">
+    <div class="nav-glass">
+      <div class="nav-tabs">
+        <button onclick="showSection('s1')" class="tab-btn" id="tab-s1">📷 Digital Images</button>
+        <button onclick="showSection('s2')" class="tab-btn" id="tab-s2">📐 Sampling</button>
+        <button onclick="showSection('s3')" class="tab-btn" id="tab-s3">🔗 Adjacency</button>
+        <button onclick="showSection('s4')" class="tab-btn" id="tab-s4">🧠 ANN</button>
+        <button onclick="showSection('s5')" class="tab-btn" id="tab-s5">📝 Class Test</button>
       </div>
-      <button onclick="toggleTheme()" id="themeBtn"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg dark:bg-slate-700 bg-slate-100 dark:text-yellow-300 text-slate-600 text-sm font-medium hover:opacity-80 transition">
-        <span id="themeIcon">☀️</span>
-        <span id="themeLabel">Light</span>
-      </button>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
     </div>
-    <!-- NAV TABS -->
-    <div class="max-w-7xl mx-auto px-4 flex gap-0 overflow-x-auto">
-      <button onclick="showSection('s1')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s1">
-        📷 Digital Images
-      </button>
-      <button onclick="showSection('s2')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s2">
-        📐 Sampling &amp; Quantization
-      </button>
-      <button onclick="showSection('s3')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s3">
-        🔗 Pixel Relationships
-      </button>
-      <button onclick="showSection('s4')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s4">
-        🧠 ANN in DIP
-      </button>
-      <button onclick="showSection('s5')" class="tab-btn px-4 py-2 text-sm font-semibold dark:text-slate-300 text-slate-600 whitespace-nowrap border-b-2 border-transparent hover:border-indigo-400 transition" id="tab-s5">
-        📝 Class Test &amp; Practice
-      </button>
-    </div>
-  </header>
+  </div>
 
-  <main class="max-w-7xl mx-auto px-4 py-8">
+  <main>
 
     <!-- ===================== SECTION 1: DIGITAL IMAGES ===================== -->
     <div id="s1" class="section active">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-2xl">📷</div>
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(140,106,93,0.1);">📷</div>
         <div>
-          <h2 class="text-2xl font-extrabold">Introduction to Digital Images</h2>
-          <p class="dark:text-slate-400 text-slate-500 text-sm">From analog signals to discrete pixel arrays</p>
+          <h2>Introduction to Digital Images</h2>
+          <p>From analog signals to discrete pixel arrays</p>
         </div>
       </div>
 
@@ -318,11 +967,11 @@
 
     <!-- ===================== SECTION 2: SAMPLING & QUANTIZATION ===================== -->
     <div id="s2" class="section">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-orange-600 flex items-center justify-center text-2xl">📐</div>
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(96,108,56,0.1);">📐</div>
         <div>
-          <h2 class="text-2xl font-extrabold">Sampling, Quantization &amp; Resolution</h2>
-          <p class="dark:text-slate-400 text-slate-500 text-sm">The mathematics of continuous-to-discrete conversion</p>
+          <h2>Sampling, Quantization &amp; Resolution</h2>
+          <p>The mathematics of continuous-to-discrete conversion</p>
         </div>
       </div>
 
@@ -476,11 +1125,11 @@
 
     <!-- ===================== SECTION 3: PIXEL RELATIONSHIPS ===================== -->
     <div id="s3" class="section">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center text-2xl">🔗</div>
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(96,108,56,0.12);">🔗</div>
         <div>
-          <h2 class="text-2xl font-extrabold">Pixel Relationships &amp; Adjacency</h2>
-          <p class="dark:text-slate-400 text-slate-500 text-sm">N4, ND, N8 neighborhoods and 4/8/m-adjacency rules</p>
+          <h2>Pixel Relationships &amp; Adjacency</h2>
+          <p>N4, ND, N8 neighborhoods and 4/8/m-adjacency rules</p>
         </div>
       </div>
 
@@ -681,11 +1330,11 @@
 
     <!-- ===================== SECTION 4: ANN IN DIP ===================== -->
     <div id="s4" class="section">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center text-2xl">🧠</div>
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(124,92,136,0.1);">🧠</div>
         <div>
-          <h2 class="text-2xl font-extrabold">Artificial Neural Networks in DIP</h2>
-          <p class="dark:text-slate-400 text-slate-500 text-sm">Architecture, activation functions, forward propagation &amp; loss</p>
+          <h2>Artificial Neural Networks in DIP</h2>
+          <p>Architecture, activation functions, forward propagation &amp; loss</p>
         </div>
       </div>
 
@@ -887,11 +1536,11 @@ y_pred = model.predict(X_test)</code></pre>
 
     <!-- ===================== SECTION 5: CLASS TEST & PRACTICE ===================== -->
     <div id="s5" class="section">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-rose-600 flex items-center justify-center text-2xl">📝</div>
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(168,80,80,0.1);">📝</div>
         <div>
-          <h2 class="text-2xl font-extrabold">Class Test Analysis &amp; Practice Set</h2>
-          <p class="dark:text-slate-400 text-slate-500 text-sm">CT1 solutions + 5 practice problems modeled after exam style</p>
+          <h2>Class Test Analysis &amp; Practice Set</h2>
+          <p>CT1 solutions + 5 practice problems modeled after exam style</p>
         </div>
       </div>
 
@@ -1445,42 +2094,37 @@ y_pred = model.predict(X_test)</code></pre>
   </main>
 
   <!-- Footer -->
-  <footer class="dark:bg-slate-800 bg-white border-t dark:border-slate-700 border-slate-200 mt-12 py-6 text-center">
-    <p class="dark:text-slate-400 text-slate-500 text-sm">CSE 4883 · Digital Image Processing · United International University</p>
-    <p class="dark:text-slate-500 text-slate-400 text-xs mt-1">Notes generated from lecture slides by Lec. Raiyan Rahman · Md. Tanvir Raihan</p>
+  <footer>
+    <p>CSE 4833 · Digital Image Processing · United International University</p>
+    <p>✦ Notes from lectures by Lec. Raiyan Rahman & Md. Tanvir Raihan ✦</p>
   </footer>
 
+  </div><!-- /page-content -->
+
   <script>
-    // Theme toggle
+    // --- Theme Toggle ---
+    const html = document.documentElement;
+    const btn  = document.getElementById('themeBtn');
+    const saved = localStorage.getItem('cozy-theme');
+    if (saved === 'dark') { html.classList.add('dark'); btn.textContent = '☀️'; }
+
     function toggleTheme() {
-      const html = document.documentElement;
       const isDark = html.classList.toggle('dark');
-      document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
-      document.getElementById('themeLabel').textContent = isDark ? 'Light' : 'Dark';
+      btn.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('cozy-theme', isDark ? 'dark' : 'light');
     }
 
-    // Tab navigation
+    // --- Tab Navigation ---
     function showSection(id) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
-
-      document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('border-indigo-500', 'text-indigo-400');
-        b.style.borderBottomColor = 'transparent';
-        b.style.color = '';
-      });
-
-      const activeBtn = document.getElementById('tab-' + id);
-      activeBtn.style.borderBottomColor = '#6366f1';
-      activeBtn.style.color = '#818cf8';
-
-      // Re-render MathJax
-      if (window.MathJax) {
-        MathJax.typesetPromise().catch(err => console.log(err));
-      }
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+      document.getElementById('tab-' + id).classList.add('active-tab');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.MathJax) MathJax.typesetPromise().catch(() => {});
     }
 
-    // Initialize first tab
+    // Initialize
     showSection('s1');
   </script>
 </body>
